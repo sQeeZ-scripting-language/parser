@@ -32,14 +32,12 @@ curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
 unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
 mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
-mv "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node "$REPO_DIR/"
 mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-if [ -d "$INCLUDE_DIR/node" ]; then
-  rm -rf "$INCLUDE_DIR/node"
-fi
+rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
+rm -rf "$INCLUDE_DIR/node"
+rm -rf "$TEMP_DIR"
 
 find "$REPO_DIR" -type d -empty -delete
-rm -rf "$TEMP_DIR"
 
 echo "Latest files have been downloaded and extracted to $REPO_DIR."
