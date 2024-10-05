@@ -65,6 +65,7 @@ add_executable(
 target_link_libraries(
   sQeeZ-Parser-Exe 
   sQeeZ-Parser-Lib
+  sQeeZ-Lexer-Lib
 )
 
 # Parser Test
@@ -76,5 +77,6 @@ target_link_libraries(
   parser_test
   GTest::gtest_main
   sQeeZ-Parser-Lib
+  sQeeZ-Lexer-Lib
 )
 gtest_discover_tests(parser_test)
