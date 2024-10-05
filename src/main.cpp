@@ -46,5 +46,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Developer mode activated!\n" << std::endl;
   }
 
+  Parser parser(code);
+  parser.parse(devMode);
+
   return 0;
 }

@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include <lexer.hpp>
+#include "lexer/lexer.hpp"
 
 class Parser {
 public:
