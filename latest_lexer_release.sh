@@ -1,8 +1,13 @@
 #!/bin/bash
 
 REPO="sQeeZ-scripting-language/lexer"
-REPO_DIR="./lexer"
+REPO_DIR="./lexer-lib"
+INCLUDE_DIR="./include/lexer"
 
+if [ -d "$INCLUDE_DIR" ]; then
+  rm -rf "$INCLUDE_DIR"
+fi
+mkdir -p "$INCLUDE_DIR"
 mkdir -p "$REPO_DIR"
 
 LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
@@ -28,9 +33,13 @@ unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
 mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
 mv "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node "$REPO_DIR/"
+mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
+
+if [ -d "$INCLUDE_DIR/node" ]; then
+  rm -rf "$INCLUDE_DIR/node"
+fi
 
 find "$REPO_DIR" -type d -empty -delete
-
 rm -rf "$TEMP_DIR"
 
 echo "Latest files have been downloaded and extracted to $REPO_DIR."
