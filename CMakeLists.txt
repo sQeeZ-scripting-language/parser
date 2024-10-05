@@ -35,11 +35,13 @@ include(GoogleTest)
 # Include the source files
 file(GLOB_RECURSE SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/*.cpp
 )
 
 # Include the header files
 file(GLOB_RECURSE HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.cpp
 )
 
 # Include the Lexer
