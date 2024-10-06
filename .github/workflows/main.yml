@@ -78,9 +78,9 @@ jobs:
 
         OS=$(uname -s)
 
-        if [[ "$OS" == "Darwin" ]]; then
+        if [[ matrix.os == 'macos-latest' ]]; then
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-macos-.*\\.zip" | head -n 1)
-        elif [[ "$OS" == "Linux" ]]; then
+        elif [[ matrix.os == 'ubuntu-latest' ]]; then
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-linux-.*\\.zip" | head -n 1)
         else
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-windows-.*\\.zip" | head -n 1)
