@@ -7,10 +7,10 @@
 
 class Parser {
 public:
-    Parser(const std::string& code);
-    void parse(bool devMode);
+  Parser(const std::string& code);
+  void parse(bool devMode);
 
-    const std::string code;
+  const std::string code;
 };
 
 #endif
