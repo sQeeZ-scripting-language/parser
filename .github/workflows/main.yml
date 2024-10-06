@@ -65,6 +65,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
+        mkdir build
         cd build
         cmake ..
         cmake --build .
