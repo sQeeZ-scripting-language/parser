@@ -64,6 +64,7 @@ jobs:
 
     - name: Download and extract sQeeZ Lexer (macOS)
       if: matrix.os == 'macos-latest'
+      shell: bash
       run: |
         REPO="sQeeZ-scripting-language/lexer"
         REPO_DIR="./lexer-lib"
@@ -102,7 +103,8 @@ jobs:
         echo "Latest files have been downloaded and extracted to $REPO_DIR."
 
     - name: Download and extract sQeeZ Lexer (Linux)
-      if: matrix.os == 'ubuntu-lates'
+      if: matrix.os == 'ubuntu-latest'
+      shell: bash
       run: |
         REPO="sQeeZ-scripting-language/lexer"
         REPO_DIR="./lexer-lib"
@@ -143,6 +145,7 @@ jobs:
 
     - name: Download and extract sQeeZ Lexer (Windows)
       if: matrix.os == 'windows-latest'
+      shell: bash
       run: |
         REPO="sQeeZ-scripting-language/lexer"
         REPO_DIR="./lexer-lib"
