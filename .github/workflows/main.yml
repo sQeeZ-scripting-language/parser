@@ -76,9 +76,11 @@ jobs:
 
         LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
 
-        if [[ "$OSTYPE" == "darwin"* ]]; then
+        OS=$(uname -s)
+
+        if [[ "$OS" == "Darwin" ]]; then
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-macos-.*\\.zip" | head -n 1)
-        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        elif [[ "$OS" == "Linux" ]]; then
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-linux-.*\\.zip" | head -n 1)
         else
           ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-windows-.*\\.zip" | head -n 1)
