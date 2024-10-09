@@ -192,6 +192,7 @@ jobs:
       if: matrix.os != 'windows-latest'
       shell: bash
       run: |
+        mkdir build
         cd build
         cmake ..
         cmake --build .
