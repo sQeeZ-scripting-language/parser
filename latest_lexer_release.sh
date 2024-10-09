@@ -36,6 +36,7 @@ mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
 rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
 rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
+rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
 rm -rf "$INCLUDE_DIR/node"
 rm -rf "$TEMP_DIR"
 
