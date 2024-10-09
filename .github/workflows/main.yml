@@ -87,7 +87,7 @@ jobs:
           exit 1
         fi
 
-        TEMP_DIR=$(mktemp -d)
+        TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
@@ -128,7 +128,7 @@ jobs:
           exit 1
         fi
 
-        TEMP_DIR=$(mktemp -d)
+        TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
@@ -170,7 +170,7 @@ jobs:
           exit 1
         fi
 
-        TEMP_DIR=$(mktemp -d)
+        TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
