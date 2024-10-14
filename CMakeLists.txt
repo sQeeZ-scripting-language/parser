@@ -41,7 +41,8 @@ file(GLOB_RECURSE SOURCES
 # Include the header files
 file(GLOB_RECURSE HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/nodes/*.hpp
 )
 
 # Include the Lexer
