@@ -12,14 +12,27 @@ void Parser::parse(bool devMode) {
   }
 }
 
+std::unique_ptr<ExpressionNode> Parser::parseAdditiveExpression() {
+  auto left = parseMultiplicativeExpression();
+
+  while (peek().value == "+" || peek().value == "-") {
+    Token op = advance();
+    auto right = parseMultiplicativeExpression();
+    left = std::make_unique<BinaryExpressionNode>(std::move(left), std::move(right), op);
+  }
+  
+  return left;
+}
+
 std::unique_ptr<ExpressionNode> Parser::parseMultiplicativeExpression() {
   auto left = parsePrimaryExpression();
 
-  while (peek().value == "*" || peek().value == "/") {
+  while (peek().value == "*" || peek().value == "/" || peek().value == "%") {
     Token op = advance();
     auto right = parsePrimaryExpression();
     left = std::make_unique<BinaryExpressionNode>(std::move(left), std::move(right), op);
   }
+
   return left;
 }
 
