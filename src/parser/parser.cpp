@@ -8,16 +8,15 @@ void Parser::parse(bool devMode) {
   assertToken(advance(), "BasicToken::INIT");
 
   while (!tokens.empty()) {
-    Token token = advance();
-    if (token.tag == Token::TypeTag::BASIC && token.type.basicToken == BasicToken::TOKEN_EOF) {
-      break;
-    }
-    parsePrimaryExpression(token);
+    parsePrimaryExpression();
   }
 }
 
-PrimaryExpressionNode Parser::parsePrimaryExpression(Token token) {
-  if (token.tag == Token::TypeTag::DATA) {
+PrimaryExpressionNode Parser::parsePrimaryExpression() {
+  Token token = advance();
+  if (token.tag == Token::TypeTag::BASIC && token.type.basicToken == BasicToken::TOKEN_EOF) {
+    return PrimaryExpressionNode(token);
+  } else if (token.tag == Token::TypeTag::DATA) {
     switch (token.type.dataToken) {
       case DataToken::INTEGER_LITERAL:
       case DataToken::DOUBLE_LITERAL:

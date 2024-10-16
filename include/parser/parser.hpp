@@ -17,7 +17,7 @@ public:
 private:
   std::vector<Token> tokens;
 
-  PrimaryExpressionNode parsePrimaryExpression(Token token);
+  PrimaryExpressionNode parsePrimaryExpression();
 
   Token advance();
   void assertToken(Token token, std::string expected);
