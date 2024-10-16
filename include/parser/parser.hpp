@@ -18,13 +18,15 @@ private:
   std::vector<Token> tokens;
 
   std::unique_ptr<ExpressionNode> parseExpression();
+  std::unique_ptr<ExpressionNode> parseObjectExpression();
   std::unique_ptr<ExpressionNode> parseAdditiveExpression();
   std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();
   std::unique_ptr<ExpressionNode> parsePrimaryExpression();
 
+  bool isEOF();
   Token peek();
   Token advance();
-  void assertToken(Token token, std::string expected);
+  Token Parser::assertToken(std::string expected);
 };
 
 #endif

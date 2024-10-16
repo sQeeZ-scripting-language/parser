@@ -16,6 +16,45 @@ public:
   virtual std::string toString() const = 0;
 };
 
+class ObjectLiteralNode : public ExpressionNode {
+public:
+  std::vector<std::unique_ptr<PropertyNode>> properties;
+
+  explicit ObjectLiteralNode(std::vector<std::unique_ptr<PropertyNode>> properties)
+      : properties(std::move(properties)) {}
+
+  void accept(ASTVisitor& visitor) override { 
+    visitor.visitObjectLiteralNode(*this); 
+  }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###OBJECT_LITERAL_NODE###\n###PROPERTIES###\n";
+    for (const auto& property : properties) {
+      oss << property->toString() << "\n";
+    }
+    return oss.str();
+  }
+};
+
+class PropertyNode : public ExpressionNode {
+public:
+  std::unique_ptr<ExpressionNode> object;
+  Token property;
+
+  PropertyNode(std::unique_ptr<ExpressionNode> object, Token property)
+      : object(std::move(object)), property(property) {}
+
+  void accept(ASTVisitor& visitor) override { visitor.visitPropertyNode(*this); }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###PROPERTY_NODE###\n###OBJECT" << object->toString() 
+        << "\n###PROPERTY" << property.toString();
+    return oss.str();
+  }
+};
+
 class BinaryExpressionNode : public ExpressionNode {
 public:
   std::unique_ptr<ExpressionNode> left;
