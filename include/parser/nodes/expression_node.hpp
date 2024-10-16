@@ -13,6 +13,7 @@ class ExpressionNode : public ASTNode {
 public:
   virtual ~ExpressionNode() = default;
   virtual void accept(ASTVisitor& visitor) = 0;
+  virtual std::string toString() const = 0;
 };
 
 class BinaryExpressionNode : public ExpressionNode {
@@ -25,6 +26,12 @@ public:
       : left(std::move(left)), right(std::move(right)), op(op) {}
 
   void accept(ASTVisitor& visitor) override { visitor.visitBinaryExpressionNode(*this); }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###BINARY_EXPRESSION###\n###LEFT" << left->toString() << "\n###OP" << op.toString() << "\n###RIGHT" << right->toString();
+    return oss.str();
+  }
 };
 
 class PrimaryExpressionNode : public ExpressionNode {
@@ -34,6 +41,10 @@ public:
   explicit PrimaryExpressionNode(const Token& token) : token(token) {}
 
   void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
+
+  std::string toString() const override {
+    return token.toString();
+  }
 };
 
 #endif

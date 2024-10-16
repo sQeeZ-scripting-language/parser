@@ -8,7 +8,7 @@ void Parser::parse(bool devMode) {
   assertToken(advance(), "BasicToken::INIT");
 
   while (!tokens.empty()) {
-    parsePrimaryExpression();
+    std::cout << parseAdditiveExpression().get()->toString() << std::endl;
   }
 }
 
@@ -20,7 +20,7 @@ std::unique_ptr<ExpressionNode> Parser::parseAdditiveExpression() {
     auto right = parseMultiplicativeExpression();
     left = std::make_unique<BinaryExpressionNode>(std::move(left), std::move(right), op);
   }
-  
+
   return left;
 }
 
