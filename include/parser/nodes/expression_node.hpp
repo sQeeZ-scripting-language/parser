@@ -23,22 +23,13 @@ public:
   void accept(ASTVisitor& visitor) override { visitor.visitBinaryExpressionNode(*this); }
 };
 
-class LiteralNode : public ExpressionNode {
+class PrimaryExpressionNode : public ExpressionNode {
 public:
   std::variant<int, double, std::string> value;
 
-  explicit LiteralNode(const std::variant<int, double, std::string>& value) : value(value) {}
+  explicit PrimaryExpressionNode(const std::variant<int, double, std::string>& value) : value(value) {}
 
-  void accept(ASTVisitor& visitor) override { visitor.visitLiteralNode(*this); }
-};
-
-class VariableNode : public ExpressionNode {
-public:
-  std::string name;
-
-  explicit VariableNode(const std::string& name) : name(name) {}
-
-  void accept(ASTVisitor& visitor) override { visitor.visitVariableNode(*this); }
+  void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
 };
 
 #endif
