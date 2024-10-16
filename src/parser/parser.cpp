@@ -13,7 +13,19 @@ void Parser::parse(bool devMode) {
 }
 
 std::unique_ptr<ExpressionNode> Parser::parseExpression() {
-  return parseAdditiveExpression();
+  return parseAssignmentExpression();
+}
+
+std::unique_ptr<ExpressionNode> Parser::parseAssignmentExpression() {
+  auto left = parseObjectExpression();
+
+  if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
+    advance();
+    auto right = parseAssignmentExpression();
+    return std::make_unique<AssignmentExpressionNode>(std::move(left), std::move(right));
+  }
+
+  return left;
 }
 
 std::unique_ptr<ExpressionNode> Parser::parseObjectExpression() {

@@ -18,6 +18,7 @@ private:
   std::vector<Token> tokens;
 
   std::unique_ptr<ExpressionNode> parseExpression();
+  std::unique_ptr<ExpressionNode> parseAssignmentExpression();
   std::unique_ptr<ExpressionNode> parseObjectExpression();
   std::unique_ptr<ExpressionNode> parseAdditiveExpression();
   std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();

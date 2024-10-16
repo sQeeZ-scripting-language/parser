@@ -4,6 +4,7 @@
 #include "parser/nodes/ast_visitor.hpp"
 #include "parser/nodes/expression_node.hpp"
 
+class AssignmentExpressionNode;
 class ObjectLiteralNode;
 class PropertyNode;
 class BinaryExpressionNode;
@@ -12,6 +13,7 @@ class PrimaryExpressionNode;
 class ASTVisitor {
 public:
   virtual ~ASTVisitor() = default;
+  virtual void visitAssignmentExpressionNode(AssignmentExpressionNode& node) = 0;
   virtual void visitObjectLiteralNode(ObjectLiteralNode& node) = 0;
   virtual void visitPropertyNode(PropertyNode& node) = 0;
   virtual void visitBinaryExpressionNode(BinaryExpressionNode& node) = 0;

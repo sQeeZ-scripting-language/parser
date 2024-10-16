@@ -16,6 +16,26 @@ public:
   virtual std::string toString() const = 0;
 };
 
+class AssignmentExpressionNode : public ExpressionNode {
+public:
+  std::unique_ptr<ExpressionNode> left;
+  std::unique_ptr<ExpressionNode> value;
+
+  AssignmentExpressionNode(std::unique_ptr<ExpressionNode> left, std::unique_ptr<ExpressionNode> value)
+      : left(std::move(left)), value(std::move(value)) {}
+
+  void accept(ASTVisitor& visitor) override { 
+    visitor.visitAssignmentExpressionNode(*this); 
+  }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###ASSIGNMENT_EXPRESSION###\n###ASSIGNEE### " << left->toString() << "\n###VALUE### " << value->toString();
+    return oss.str();
+  }
+};
+
+
 class ObjectLiteralNode : public ExpressionNode {
 public:
   std::vector<std::unique_ptr<PropertyNode>> properties;
