@@ -2,6 +2,7 @@
 #define PARSER_HPP
 
 #include <iostream>
+#include <cassert>
 
 #include "lexer/lexer.hpp"
 
@@ -11,6 +12,12 @@ public:
   void parse(bool devMode);
 
   const std::string code;
+
+private:
+  std::vector<Token> tokens;
+
+  Token advance();
+  void assertToken(Token token, std::string expected);
 };
 
 #endif
