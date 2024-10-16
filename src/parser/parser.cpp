@@ -12,6 +12,10 @@ void Parser::parse(bool devMode) {
   }
 }
 
+std::unique_ptr<ExpressionNode> Parser::parseExpression() {
+  return parseAdditiveExpression();
+}
+
 std::unique_ptr<ExpressionNode> Parser::parseAdditiveExpression() {
   auto left = parseMultiplicativeExpression();
 
@@ -51,6 +55,10 @@ std::unique_ptr<ExpressionNode> Parser::parsePrimaryExpression() {
       default:
         break;
     }
+  } else if (token.tag == Token::TypeTag::SYNTAX && token.type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+    auto expression = parseExpression();
+    assertToken(advance(), "SyntaxToken::CLOSE_PARENTHESIS");
+    return expression;
   }
 
   std::cerr << "Unexpected token: " << token.plainText << std::endl;
