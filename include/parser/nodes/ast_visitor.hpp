@@ -4,6 +4,9 @@
 #include "parser/nodes/ast_visitor.hpp"
 #include "parser/nodes/expression_node.hpp"
 
+class BinaryExpressionNode;
+class PrimaryExpressionNode;
+
 class ASTVisitor {
 public:
   virtual ~ASTVisitor() = default;

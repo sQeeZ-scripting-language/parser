@@ -1,9 +1,10 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 
+#include "parser/nodes/expression_node.hpp"
 #include "lexer/lexer.hpp"
 
 class Parser {
@@ -15,6 +16,8 @@ public:
 
 private:
   std::vector<Token> tokens;
+
+  PrimaryExpressionNode parsePrimaryExpression(Token token);
 
   Token advance();
   void assertToken(Token token, std::string expected);

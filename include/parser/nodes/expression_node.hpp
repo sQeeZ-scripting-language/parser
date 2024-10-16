@@ -2,13 +2,17 @@
 #define EXPRESSION_NODE_HPP
 
 #include <iostream>
+#include <memory>
 
 #include "lexer/tokens/token.hpp"
 #include "parser/nodes/ast_node.hpp"
 
+class ASTVisitor;
+
 class ExpressionNode : public ASTNode {
 public:
   virtual ~ExpressionNode() = default;
+  virtual void accept(ASTVisitor& visitor) = 0;
 };
 
 class BinaryExpressionNode : public ExpressionNode {
@@ -25,9 +29,9 @@ public:
 
 class PrimaryExpressionNode : public ExpressionNode {
 public:
-  std::variant<int, double, std::string> value;
+  Token token;
 
-  explicit PrimaryExpressionNode(const std::variant<int, double, std::string>& value) : value(value) {}
+  explicit PrimaryExpressionNode(const Token& token) : token(token) {}
 
   void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
 };
