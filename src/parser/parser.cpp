@@ -73,15 +73,54 @@ std::unique_ptr<ExpressionNode> Parser::parseAdditiveExpression() {
 }
 
 std::unique_ptr<ExpressionNode> Parser::parseMultiplicativeExpression() {
-  auto left = parsePrimaryExpression();
+  auto left = parseCallMemberExpression();
 
   while (peek().value == "*" || peek().value == "/" || peek().value == "%") {
     Token op = advance();
-    auto right = parsePrimaryExpression();
+    auto right = parseCallMemberExpression();
     left = std::make_unique<BinaryExpressionNode>(std::move(left), std::move(right), op);
   }
 
   return left;
+}
+
+std::unique_ptr<ExpressionNode> Parser::parseCallMemberExpression() {
+  auto member = parseMemberExpression();
+
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+    return parseCallExpression(std::move(member));
+  }
+
+  return member;
+}
+
+std::unique_ptr<ExpressionNode> Parser::parseCallExpression(std::unique_ptr<ExpressionNode> caller) {
+  auto callExpr = std::make_unique<CallExpressionNode>(std::move(caller), parseArgs());
+
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+    return parseCallExpression(std::move(callExpr));
+  }
+
+  return callExpr;
+}
+
+std::vector<std::unique_ptr<ExpressionNode>> Parser::parseArgs() {
+  assertToken("SyntaxToken::OPEN_PARENTHESIS");
+  auto args = peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_PARENTHESIS ? std::vector<std::unique_ptr<ExpressionNode>>() : parseArgumentsList();
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS");
+  return args;
+}
+
+std::vector<std::unique_ptr<ExpressionNode>> Parser::parseArgumentsList() {
+  auto args = std::vector<std::unique_ptr<ExpressionNode>>();
+  args.push_back(parseAssignmentExpression());
+
+  while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
+    advance();
+    args.push_back(parseAssignmentExpression());
+  }
+
+  return args;
 }
 
 std::unique_ptr<ExpressionNode> Parser::parseMemberExpression() {

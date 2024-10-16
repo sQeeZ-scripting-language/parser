@@ -70,6 +70,24 @@ public:
   }
 };
 
+class PropertyNode : public ExpressionNode {
+public:
+  std::unique_ptr<ExpressionNode> object;
+  Token property;
+
+  PropertyNode(std::unique_ptr<ExpressionNode> object, Token property)
+      : object(std::move(object)), property(property) {}
+
+  void accept(ASTVisitor& visitor) override { visitor.visitPropertyNode(*this); }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###PROPERTY_NODE###\n###OBJECT" << object->toString() 
+        << "\n###PROPERTY" << property.toString();
+    return oss.str();
+  }
+};
+
 class ObjectLiteralNode : public ExpressionNode {
 public:
   std::vector<std::unique_ptr<PropertyNode>> properties;
@@ -87,24 +105,6 @@ public:
     for (const auto& property : properties) {
       oss << property->toString() << "\n";
     }
-    return oss.str();
-  }
-};
-
-class PropertyNode : public ExpressionNode {
-public:
-  std::unique_ptr<ExpressionNode> object;
-  Token property;
-
-  PropertyNode(std::unique_ptr<ExpressionNode> object, Token property)
-      : object(std::move(object)), property(property) {}
-
-  void accept(ASTVisitor& visitor) override { visitor.visitPropertyNode(*this); }
-
-  std::string toString() const override {
-    std::ostringstream oss;
-    oss << "###PROPERTY_NODE###\n###OBJECT" << object->toString() 
-        << "\n###PROPERTY" << property.toString();
     return oss.str();
   }
 };
@@ -131,6 +131,27 @@ public:
   }
 };
 
+class CallExpressionNode : public ExpressionNode {
+public:
+  std::unique_ptr<ExpressionNode> caller;
+  std::vector<std::unique_ptr<ExpressionNode>> args;
+
+  CallExpressionNode(std::unique_ptr<ExpressionNode> caller, std::vector<std::unique_ptr<ExpressionNode>> args)
+      : caller(std::move(caller)), args(std::move(args)) {}
+
+  void accept(ASTVisitor& visitor) override { 
+    visitor.visitCallExpressionNode(*this); 
+  }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###CALL_EXPRESSION###\n###CALLER### " << caller->toString() << "\n###ARGUMENTS###\n";
+    for (const auto& arg : args) {
+      oss << arg->toString() << "\n";
+    }
+    return oss.str();
+  }
+};
 
 
 #endif

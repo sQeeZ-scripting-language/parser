@@ -22,13 +22,17 @@ private:
   std::unique_ptr<ExpressionNode> parseObjectExpression();
   std::unique_ptr<ExpressionNode> parseAdditiveExpression();
   std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();
+  std::unique_ptr<ExpressionNode> parseCallMemberExpression();
+  std::unique_ptr<ExpressionNode> parseCallExpression(std::unique_ptr<ExpressionNode> caller);
+  std::vector<std::unique_ptr<ExpressionNode>> parseArgs();
+  std::vector<std::unique_ptr<ExpressionNode>> parseArgumentsList();
   std::unique_ptr<ExpressionNode> parseMemberExpression();
   std::unique_ptr<ExpressionNode> parsePrimaryExpression();
 
   bool isEOF();
   Token peek();
   Token advance();
-  Token Parser::assertToken(std::string expected);
+  Token assertToken(std::string expected);
 };
 
 #endif

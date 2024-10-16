@@ -7,9 +7,10 @@
 class PrimaryExpressionNode;
 class BinaryExpressionNode;
 class AssignmentExpressionNode;
-class ObjectLiteralNode;
 class PropertyNode;
+class ObjectLiteralNode;
 class MemberExpressionNode;
+class CallExpressionNode;
 
 class ASTVisitor {
 public:
@@ -20,6 +21,7 @@ public:
   virtual void visitObjectLiteralNode(ObjectLiteralNode& node) = 0;
   virtual void visitPropertyNode(PropertyNode& node) = 0;
   virtual void visitMemberExpressionNode(MemberExpressionNode& node) = 0;
+  virtual void visitCallExpressionNode(CallExpressionNode& node) = 0;
 };
 
 #endif
