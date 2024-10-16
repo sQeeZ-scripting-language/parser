@@ -17,8 +17,10 @@ public:
 private:
   std::vector<Token> tokens;
 
-  PrimaryExpressionNode parsePrimaryExpression();
+  std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();
+  std::unique_ptr<ExpressionNode> parsePrimaryExpression();
 
+  Token peek();
   Token advance();
   void assertToken(Token token, std::string expected);
 };
