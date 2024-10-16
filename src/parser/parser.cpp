@@ -84,6 +84,36 @@ std::unique_ptr<ExpressionNode> Parser::parseMultiplicativeExpression() {
   return left;
 }
 
+std::unique_ptr<ExpressionNode> Parser::parseMemberExpression() {
+  auto object = parsePrimaryExpression();
+
+  while (peek().tag == Token::TypeTag::SYNTAX && (peek().type.syntaxToken == SyntaxToken::DOT || peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
+    Token op = advance();
+    std::unique_ptr<ExpressionNode> property;
+    bool computed;
+    
+    if (op.tag == Token::TypeTag::SYNTAX && op.type.syntaxToken == SyntaxToken::DOT) {
+      computed = false;
+      property = parsePrimaryExpression();
+      auto primaryExpr = std::make_unique<PrimaryExpressionNode>(property);
+    
+      if (!(primaryExpr->getToken().tag == Token::TypeTag::DATA && primaryExpr->getToken().type.dataToken == DataToken::IDENTIFIER)) {
+        std::cerr << "Cannot use dot operator without right hand side being an identifier" << std::endl;
+        assert(false);
+      }
+
+    } else {
+      computed = true;
+      property = parseExpression();
+      assertToken("SyntaxToken::CLOSE_BRACKET");
+    }
+
+    object = std::make_unique<MemberExpressionNode>(std::move(object), std::move(property), computed);
+  }
+
+  return object;
+}
+
 std::unique_ptr<ExpressionNode> Parser::parsePrimaryExpression() {
   Token token = advance();
 

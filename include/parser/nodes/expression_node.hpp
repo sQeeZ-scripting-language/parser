@@ -16,6 +16,41 @@ public:
   virtual std::string toString() const = 0;
 };
 
+class PrimaryExpressionNode : public ExpressionNode {
+public:
+  Token token;
+
+  explicit PrimaryExpressionNode(const Token& token) : token(token) {}
+
+  void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
+
+  std::string toString() const override {
+    return token.toString();
+  }
+
+  const Token& getToken() const {
+    return token;
+  }
+};
+
+class BinaryExpressionNode : public ExpressionNode {
+public:
+  std::unique_ptr<ExpressionNode> left;
+  std::unique_ptr<ExpressionNode> right;
+  Token op;
+
+  BinaryExpressionNode(std::unique_ptr<ExpressionNode> left, std::unique_ptr<ExpressionNode> right, Token op)
+      : left(std::move(left)), right(std::move(right)), op(op) {}
+
+  void accept(ASTVisitor& visitor) override { visitor.visitBinaryExpressionNode(*this); }
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "###BINARY_EXPRESSION###\n###LEFT" << left->toString() << "\n###OP" << op.toString() << "\n###RIGHT" << right->toString();
+    return oss.str();
+  }
+};
+
 class AssignmentExpressionNode : public ExpressionNode {
 public:
   std::unique_ptr<ExpressionNode> left;
@@ -34,7 +69,6 @@ public:
     return oss.str();
   }
 };
-
 
 class ObjectLiteralNode : public ExpressionNode {
 public:
@@ -75,35 +109,28 @@ public:
   }
 };
 
-class BinaryExpressionNode : public ExpressionNode {
+class MemberExpressionNode : public ExpressionNode {
 public:
-  std::unique_ptr<ExpressionNode> left;
-  std::unique_ptr<ExpressionNode> right;
-  Token op;
+  std::unique_ptr<ExpressionNode> object;
+  std::unique_ptr<ExpressionNode> property;
+  bool computed;
 
-  BinaryExpressionNode(std::unique_ptr<ExpressionNode> left, std::unique_ptr<ExpressionNode> right, Token op)
-      : left(std::move(left)), right(std::move(right)), op(op) {}
+  MemberExpressionNode(std::unique_ptr<ExpressionNode> object, std::unique_ptr<ExpressionNode> property, bool computed)
+      : object(std::move(object)), property(std::move(property)), computed(computed) {}
 
-  void accept(ASTVisitor& visitor) override { visitor.visitBinaryExpressionNode(*this); }
+  void accept(ASTVisitor& visitor) override { 
+    visitor.visitMemberExpressionNode(*this); 
+  }
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###BINARY_EXPRESSION###\n###LEFT" << left->toString() << "\n###OP" << op.toString() << "\n###RIGHT" << right->toString();
+    oss << "###MEMBER_EXPRESSION###\n###OBJECT### " << object->toString() 
+        << "\n###PROPERTY### " << property->toString()
+        << "\n###COMPUTED### " << (computed ? "true" : "false");
     return oss.str();
   }
 };
 
-class PrimaryExpressionNode : public ExpressionNode {
-public:
-  Token token;
 
-  explicit PrimaryExpressionNode(const Token& token) : token(token) {}
-
-  void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
-
-  std::string toString() const override {
-    return token.toString();
-  }
-};
 
 #endif

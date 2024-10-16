@@ -22,6 +22,7 @@ private:
   std::unique_ptr<ExpressionNode> parseObjectExpression();
   std::unique_ptr<ExpressionNode> parseAdditiveExpression();
   std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();
+  std::unique_ptr<ExpressionNode> parseMemberExpression();
   std::unique_ptr<ExpressionNode> parsePrimaryExpression();
 
   bool isEOF();
