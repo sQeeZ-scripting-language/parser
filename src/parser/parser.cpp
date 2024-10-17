@@ -134,13 +134,14 @@ std::unique_ptr<ExpressionNode> Parser::parseMemberExpression() {
     if (op.tag == Token::TypeTag::SYNTAX && op.type.syntaxToken == SyntaxToken::DOT) {
       computed = false;
       property = parsePrimaryExpression();
-      auto primaryExpr = std::make_unique<PrimaryExpressionNode>(property);
-    
-      if (!(primaryExpr->getToken().tag == Token::TypeTag::DATA && primaryExpr->getToken().type.dataToken == DataToken::IDENTIFIER)) {
-        std::cerr << "Cannot use dot operator without right hand side being an identifier" << std::endl;
+      auto primaryExprNode = dynamic_cast<PrimaryExpressionNode*>(property.get());
+      if (!(primaryExprNode->getToken().tag == Token::TypeTag::DATA && primaryExprNode->getToken().type.dataToken != DataToken::IDENTIFIER)) {
+        std::cerr << "Invalid property for dot operator" << std::endl;
         assert(false);
       }
 
+      Token propertyToken = primaryExprNode->getToken();
+      property = std::make_unique<PrimaryExpressionNode>(propertyToken);
     } else {
       computed = true;
       property = parseExpression();

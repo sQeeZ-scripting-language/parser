@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <memory>
+#include <sstream>
+#include <vector>
 
 #include "lexer/tokens/token.hpp"
 #include "parser/nodes/ast_node.hpp"
@@ -22,7 +24,9 @@ public:
 
   explicit PrimaryExpressionNode(const Token& token) : token(token) {}
 
-  void accept(ASTVisitor& visitor) override { visitor.visitPrimaryExpressionNode(*this); }
+  void accept(ASTVisitor& visitor) override {
+    visitor.visitPrimaryExpressionNode(*this);
+  }
 
   std::string toString() const override {
     return token.toString();
@@ -42,11 +46,16 @@ public:
   BinaryExpressionNode(std::unique_ptr<ExpressionNode> left, std::unique_ptr<ExpressionNode> right, Token op)
       : left(std::move(left)), right(std::move(right)), op(op) {}
 
-  void accept(ASTVisitor& visitor) override { visitor.visitBinaryExpressionNode(*this); }
+  void accept(ASTVisitor& visitor) override {
+    visitor.visitBinaryExpressionNode(*this);
+  }
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###BINARY_EXPRESSION###\n###LEFT" << left->toString() << "\n###OP" << op.toString() << "\n###RIGHT" << right->toString();
+    oss << "###BINARY_EXPRESSION###\n"
+        << "###LEFT### " << left->toString() << "\n"
+        << "###OP### " << op.toString() << "\n"
+        << "###RIGHT### " << right->toString();
     return oss.str();
   }
 };
@@ -65,7 +74,9 @@ public:
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###ASSIGNMENT_EXPRESSION###\n###ASSIGNEE### " << left->toString() << "\n###VALUE### " << value->toString();
+    oss << "###ASSIGNMENT_EXPRESSION###\n"
+        << "###ASSIGNEE### " << left->toString() << "\n"
+        << "###VALUE### " << value->toString();
     return oss.str();
   }
 };
@@ -78,12 +89,15 @@ public:
   PropertyNode(std::unique_ptr<ExpressionNode> object, Token property)
       : object(std::move(object)), property(property) {}
 
-  void accept(ASTVisitor& visitor) override { visitor.visitPropertyNode(*this); }
+  void accept(ASTVisitor& visitor) override { 
+    visitor.visitPropertyNode(*this); 
+  }
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###PROPERTY_NODE###\n###OBJECT" << object->toString() 
-        << "\n###PROPERTY" << property.toString();
+    oss << "###PROPERTY_NODE###\n"
+        << "###OBJECT### " << object->toString() << "\n"
+        << "###PROPERTY### " << property.toString();
     return oss.str();
   }
 };
@@ -124,9 +138,10 @@ public:
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###MEMBER_EXPRESSION###\n###OBJECT### " << object->toString() 
-        << "\n###PROPERTY### " << property->toString()
-        << "\n###COMPUTED### " << (computed ? "true" : "false");
+    oss << "###MEMBER_EXPRESSION###\n"
+        << "###OBJECT### " << object->toString() << "\n"
+        << "###PROPERTY### " << property->toString() << "\n"
+        << "###COMPUTED### " << (computed ? "true" : "false");
     return oss.str();
   }
 };
@@ -145,13 +160,14 @@ public:
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "###CALL_EXPRESSION###\n###CALLER### " << caller->toString() << "\n###ARGUMENTS###\n";
+    oss << "###CALL_EXPRESSION###\n"
+        << "###CALLER### " << caller->toString() << "\n"
+        << "###ARGUMENTS###\n";
     for (const auto& arg : args) {
       oss << arg->toString() << "\n";
     }
     return oss.str();
   }
 };
-
 
 #endif
