@@ -120,7 +120,6 @@ jobs:
         mkdir -p "$REPO_DIR"
 
         LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
-
         ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-linux-.*\\.zip" | head -n 1)
 
         if [ -z "$ZIP_URL" ]; then
@@ -131,10 +130,10 @@ jobs:
         TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
-        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
+        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR" || { echo "Unzip failed"; exit 1; }
 
-        mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
-        mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
+        mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/" || { echo "Failed to move library"; exit 1; }
+        mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/" || { echo "Failed to move includes"; exit 1; }
 
         rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
