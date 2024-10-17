@@ -13,7 +13,7 @@
 class Parser {
 public:
   Parser(const std::string& code);
-  std::unique_ptr<Program> parse(bool devMode);
+  std::unique_ptr<Program> parse(bool devMode, bool devLexer);
 
   const std::string code;
 

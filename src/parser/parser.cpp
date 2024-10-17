@@ -2,9 +2,9 @@
 
 Parser::Parser(const std::string& code) : code(code) {}
 
-std::unique_ptr<Program> Parser::parse(bool devMode) {
+std::unique_ptr<Program> Parser::parse(bool devMode, bool devLexer) {
   Lexer lexer(code);
-  tokens = lexer.tokenize(false);
+  tokens = lexer.tokenize(devLexer);
   assertToken("BasicToken::INIT", "Expected INIT token at the beginning of the token stream.");
   std::unique_ptr<Program> ast = buildAST();
   log(ast, devMode);
