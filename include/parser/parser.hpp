@@ -3,8 +3,11 @@
 
 #include <cassert>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "parser/nodes/expression_node.hpp"
+#include "parser/ast_nodes.hpp"
 #include "lexer/lexer.hpp"
 
 class Parser {
@@ -17,22 +20,26 @@ public:
 private:
   std::vector<Token> tokens;
 
-  std::unique_ptr<ExpressionNode> parseExpression();
-  std::unique_ptr<ExpressionNode> parseAssignmentExpression();
-  std::unique_ptr<ExpressionNode> parseObjectExpression();
-  std::unique_ptr<ExpressionNode> parseAdditiveExpression();
-  std::unique_ptr<ExpressionNode> parseMultiplicativeExpression();
-  std::unique_ptr<ExpressionNode> parseCallMemberExpression();
-  std::unique_ptr<ExpressionNode> parseCallExpression(std::unique_ptr<ExpressionNode> caller);
-  std::vector<std::unique_ptr<ExpressionNode>> parseArgs();
-  std::vector<std::unique_ptr<ExpressionNode>> parseArgumentsList();
-  std::unique_ptr<ExpressionNode> parseMemberExpression();
-  std::unique_ptr<ExpressionNode> parsePrimaryExpression();
+  std::unique_ptr<Program> buildAST();
+  std::unique_ptr<Stmt> parseStatement();
+  std::unique_ptr<Stmt> parseFunctionDeclaration();
+  std::unique_ptr<Stmt> parseVarDeclaration();
+  std::unique_ptr<Expr> parseExpression();
+  std::unique_ptr<Expr> parseAssignmentExpr();
+  std::unique_ptr<Expr> parseObjectExpr();
+  std::unique_ptr<Expr> parseAdditiveExpr();
+  std::unique_ptr<Expr> parseMultiplicativeExpr();
+  std::unique_ptr<Expr> parseCallMemberExpr();
+  std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> caller);
+  std::vector<std::unique_ptr<Expr>> parseArgs();
+  std::vector<std::unique_ptr<Expr>> parseArgumentsList();
+  std::unique_ptr<Expr> parseMemberExpr();
+  std::unique_ptr<Expr> parsePrimaryExpr();
 
   bool isEOF();
   Token peek();
   Token advance();
-  Token assertToken(std::string expected);
+  Token assertToken(const std::string& expected, const std::string& errorMessage);
 };
 
 #endif
