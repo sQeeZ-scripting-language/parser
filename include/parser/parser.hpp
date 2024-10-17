@@ -13,7 +13,7 @@
 class Parser {
 public:
   Parser(const std::string& code);
-  void parse(bool devMode);
+  std::unique_ptr<Program> parse(bool devMode);
 
   const std::string code;
 
@@ -40,6 +40,7 @@ private:
   Token peek();
   Token advance();
   Token assertToken(const std::string& expected, const std::string& errorMessage);
+  void log(const std::unique_ptr<Program>& program, bool devMode);
 };
 
 #endif

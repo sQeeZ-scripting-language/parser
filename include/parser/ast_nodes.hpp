@@ -2,6 +2,7 @@
 #define AST_NODES_HPP
 
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <string>
 #include <vector>
@@ -48,7 +49,16 @@ public:
     Program() : Stmt(NodeType::Program) {}
 
     std::string toString() const override {
-        return "Program";
+        std::ostringstream oss;
+        oss << "Program:\n";
+
+        for (const auto& stmt : body) {
+            if (stmt) {
+                oss << "  " << stmt->toString() << "\n";
+            }
+        }
+
+        return oss.str();
     }
 };
 

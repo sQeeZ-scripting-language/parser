@@ -2,11 +2,13 @@
 
 Parser::Parser(const std::string& code) : code(code) {}
 
-void Parser::parse(bool devMode) {
+std::unique_ptr<Program> Parser::parse(bool devMode) {
   Lexer lexer(code);
-  tokens = lexer.tokenize(devMode);
+  tokens = lexer.tokenize(false);
   assertToken("BasicToken::INIT", "Expected INIT token at the beginning of the token stream.");
-  buildAST();
+  std::unique_ptr<Program> ast = buildAST();
+  log(ast, devMode);
+  return std::move(ast);
 }
 
 std::unique_ptr<Program> Parser::buildAST() {
@@ -84,7 +86,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
     return std::make_unique<VarDeclaration>(false, identifier, nullptr);
   }
 
-  assertToken("OperatorToken::ASSIGNMENT", "Expected assign token following identifier in var declaration.");
+  assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
   std::unique_ptr<Expr> value = parseExpression();
   assertToken("SyntaxToken::SEMICOLON", "Variable declaration statment must end with semicolon.");
 
@@ -309,4 +311,10 @@ Token Parser::assertToken(const std::string& expected, const std::string& errorM
     assert(false);
   }
   return token;
+}
+
+void Parser::log(const std::unique_ptr<Program>& program, bool devMode) {
+  if (devMode) {
+    std::cout << program->toString() << std::endl;
+  }
 }
