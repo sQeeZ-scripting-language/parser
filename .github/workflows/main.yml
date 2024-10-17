@@ -79,7 +79,6 @@ jobs:
         mkdir -p "$REPO_DIR"
 
         LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
-
         ZIP_URL=$(echo "$LATEST_RELEASE" | grep -o "https://.*sQeeZ-Lexer-macos-.*\\.zip" | head -n 1)
 
         if [ -z "$ZIP_URL" ]; then
@@ -87,10 +86,10 @@ jobs:
           exit 1
         fi
 
-        TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
+        TEMP_DIR=$(mktemp -d)
 
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
-        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
+        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR" || { echo "Unzipping failed"; exit 1; }
 
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
