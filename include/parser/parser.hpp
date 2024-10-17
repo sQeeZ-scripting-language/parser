@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "parser/ast_nodes.hpp"
 #include "lexer/lexer.hpp"
+#include "parser/ast_nodes.hpp"
 
 class Parser {
 public:

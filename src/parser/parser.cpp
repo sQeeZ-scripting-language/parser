@@ -63,11 +63,7 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
 
   assertToken("SyntaxToken::CLOSE_BRACE", "Closing brace expected inside function declaration");
 
-  auto fn = std::make_unique<FunctionDeclaration>(
-    name,
-    std::move(params),
-    std::move(body)
-  );
+  auto fn = std::make_unique<FunctionDeclaration>(name, std::move(params), std::move(body));
 
   return fn;
 }
@@ -75,7 +71,8 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
 std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   bool isConstant = (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::CONSTANT);
   advance();
-  std::string identifier = assertToken("DataToken::IDENTIFIER", "Expected identifier name following let | const keywords.").value;
+  std::string identifier =
+      assertToken("DataToken::IDENTIFIER", "Expected identifier name following let | const keywords.").value;
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON) {
     advance();
@@ -93,9 +90,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   return std::make_unique<VarDeclaration>(isConstant, identifier, std::move(value));
 }
 
-std::unique_ptr<Expr> Parser::parseExpression() {
-  return parseAssignmentExpr();
-}
+std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }
 
 std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
   auto left = parseObjectExpr();
@@ -219,10 +214,8 @@ std::vector<std::unique_ptr<Expr>> Parser::parseArgumentsList() {
 std::unique_ptr<Expr> Parser::parseMemberExpr() {
   std::unique_ptr<Expr> object = parsePrimaryExpr();
 
-  while (
-      (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) 
-      || (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)
-  ) {
+  while ((peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) ||
+         (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
     Token operatorToken = advance();
     std::unique_ptr<Expr> property;
     bool computed;
@@ -234,7 +227,7 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       if (property->kind != NodeType::Identifier) {
         throw std::runtime_error("Cannot use dot operator without right-hand side being an identifier.");
       }
-    } 
+    }
     // bracket notation
     else {
       computed = true;
@@ -242,7 +235,7 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       assertToken("SyntaxToken::CLOSE_BRACKET", "Missing closing bracket in computed value.");
     }
 
-    object = std::make_unique<MemberExpr>(MemberExpr{ std::move(object), std::move(property), computed });
+    object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
   }
 
   return object;
@@ -254,20 +247,21 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
   if (token.tag == Token::TypeTag::DATA) {
     switch (token.type.dataToken) {
       case DataToken::INTEGER_LITERAL:
-        return std::make_unique<IntegerLiteral>(IntegerLiteral{ std::stoi(advance().value) });
+        return std::make_unique<IntegerLiteral>(IntegerLiteral{std::stoi(advance().value)});
       case DataToken::DOUBLE_LITERAL:
-        return std::make_unique<DoubleLiteral>(DoubleLiteral{ std::stod(advance().value) });
+        return std::make_unique<DoubleLiteral>(DoubleLiteral{std::stod(advance().value)});
       case DataToken::STRING_LITERAL:
-        return std::make_unique<StringLiteral>(StringLiteral{ advance().value });
+        return std::make_unique<StringLiteral>(StringLiteral{advance().value});
       case DataToken::IDENTIFIER:
-        return std::make_unique<Identifier>(Identifier{ advance().value });
+        return std::make_unique<Identifier>(Identifier{advance().value});
       default:
         break;
     }
   } else if (token.tag == Token::TypeTag::SYNTAX && token.type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
     advance();
     auto expression = parseExpression();
-    assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
+    assertToken("SyntaxToken::CLOSE_PARENTHESIS",
+                "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
     return expression;
   }
 
@@ -276,27 +270,9 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
   return nullptr;
 }
 
+bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-bool Parser::isEOF() {
-  return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF;
-}
-
-Token Parser::peek() {
-  return tokens.front();
-}
+Token Parser::peek() { return tokens.front(); }
 
 Token Parser::advance() {
   Token token = tokens.front();
