@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
 # Set the project name
 project(sQeeZ-Parser)
