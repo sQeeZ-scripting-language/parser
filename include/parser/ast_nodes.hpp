@@ -51,13 +51,11 @@ public:
     std::string toString() const override {
         std::ostringstream oss;
         oss << "Program:\n";
-
         for (const auto& stmt : body) {
             if (stmt) {
                 oss << "  " << stmt->toString() << "\n";
             }
         }
-
         return oss.str();
     }
 };
@@ -72,7 +70,12 @@ public:
         : Stmt(NodeType::VarDeclaration), constant(constant), identifier(identifier), value(std::move(value)) {}
 
     std::string toString() const override {
-        return "VarDeclaration: " + identifier;
+        std::ostringstream oss;
+        oss << "VarDeclaration: " << (constant ? "const " : "let ") << identifier;
+        if (value) {
+            oss << " = " << value->toString();
+        }
+        return oss.str();
     }
 };
 
@@ -83,10 +86,22 @@ public:
     std::vector<std::unique_ptr<Stmt>> body;
 
     FunctionDeclaration(const std::string& name, std::vector<std::string> parameters, std::vector<std::unique_ptr<Stmt>> body)
-        : Stmt(NodeType::FunctionDeclaration), name(name), parameters(parameters), body(std::move(body)) {}
+        : Stmt(NodeType::FunctionDeclaration), name(name), parameters(std::move(parameters)), body(std::move(body)) {}
 
     std::string toString() const override {
-        return "FunctionDeclaration: " + name;
+        std::ostringstream oss;
+        oss << "FunctionDeclaration: " << name << "(";
+        for (size_t i = 0; i < parameters.size(); ++i) {
+            oss << parameters[i];
+            if (i < parameters.size() - 1) {
+                oss << ", ";
+            }
+        }
+        oss << ")\n";
+        for (const auto& stmt : body) {
+            oss << "  " << stmt->toString() << "\n";
+        }
+        return oss.str();
     }
 };
 
@@ -105,7 +120,7 @@ public:
         : Expr(NodeType::AssignmentExpr), assignee(std::move(assignee)), value(std::move(value)) {}
 
     std::string toString() const override {
-        return "AssignmentExpr";
+        return "AssignmentExpr: " + assignee->toString() + " = " + value->toString();
     }
 };
 
@@ -119,7 +134,7 @@ public:
         : Expr(NodeType::BinaryExpr), left(std::move(left)), right(std::move(right)), operator_(operator_) {}
 
     std::string toString() const override {
-        return "BinaryExpr: " + operator_;
+        return "BinaryExpr: (" + left->toString() + " " + operator_ + " " + right->toString() + ")";
     }
 };
 
@@ -134,7 +149,16 @@ public:
         : Expr(NodeType::CallExpr), caller(std::move(caller)), args(std::move(args)) {}
 
     std::string toString() const override {
-        return "CallExpr";
+        std::ostringstream oss;
+        oss << "CallExpr: " << caller->toString() << "(";
+        for (size_t i = 0; i < args.size(); ++i) {
+            oss << args[i]->toString();
+            if (i < args.size() - 1) {
+                oss << ", ";
+            }
+        }
+        oss << ")";
+        return oss.str();
     }
 };
 
@@ -148,7 +172,7 @@ public:
         : Expr(NodeType::MemberExpr), object(std::move(object)), property(std::move(property)), computed(computed) {}
 
     std::string toString() const override {
-        return "MemberExpr";
+        return "MemberExpr: " + object->toString() + (computed ? "[" + property->toString() + "]" : "." + property->toString());
     }
 };
 
@@ -194,10 +218,10 @@ public:
     std::string value;
 
     explicit StringLiteral(std::string value)
-        : Expr(NodeType::StringLiteral), value(value) {}
+        : Expr(NodeType::StringLiteral), value(std::move(value)) {}
 
     std::string toString() const override {
-        return "StringLiteral: " + value;
+        return "StringLiteral: \"" + value + "\"";
     }
 };
 
@@ -210,7 +234,12 @@ public:
         : Expr(NodeType::Property), key(key), value(std::move(value)) {}
 
     std::string toString() const override {
-        return "Property: " + key;
+        std::ostringstream oss;
+        oss << "Property: " << key;
+        if (value) {
+            oss << " = " << value->toString();
+        }
+        return oss.str();
     }
 };
 
@@ -222,7 +251,16 @@ public:
         : Expr(NodeType::ObjectLiteral), properties(std::move(properties)) {}
 
     std::string toString() const override {
-        return "ObjectLiteral";
+        std::ostringstream oss;
+        oss << "ObjectLiteral: { ";
+        for (size_t i = 0; i < properties.size(); ++i) {
+            oss << properties[i]->toString();
+            if (i < properties.size() - 1) {
+                oss << ", ";
+            }
+        }
+        oss << " }";
+        return oss.str();
     }
 };
 
