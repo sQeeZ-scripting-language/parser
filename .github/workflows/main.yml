@@ -191,6 +191,18 @@ jobs:
       if: matrix.os != 'windows-latest'
       shell: bash
       run: |
+        if [ -d "parser" ]; then
+          echo "parser exists"
+          if [ -d "parser/include" ]; then
+            echo "include exists"
+            if [ -d "parser/include/lexer" ]; then
+              echo "lexer exists"
+            else
+              echo "lexer does not exist"
+            fi
+          fi
+        fi
+
         mkdir build
         cd build
         cmake ..
