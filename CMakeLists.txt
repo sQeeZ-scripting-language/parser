@@ -2,19 +2,34 @@
 cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED True)
+set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
 # Set the project name
 project(sQeeZ-Parser)
 
 # OS specific configurations
 if(MSVC)
+  message(FATAL_ERROR "MSVC is not supported")
+elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   add_definitions(-D_SQEEZ_WIN)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 elseif(APPLE)
   add_definitions(-D_SQEEZ_MAC)
+  set(CMAKE_OSX_ARCHITECTURES "arm64")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
 else()
   add_definitions(-D_SQEEZ_LINUX)
 endif()
+
+# Print the compiler information
+message(STATUS "Operating System: ${CMAKE_SYSTEM_NAME}")
+message(STATUS "C Compiler: ${CMAKE_C_COMPILER}")
+message(STATUS "C Compiler Version: ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 # Include the header directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -41,7 +56,7 @@ file(GLOB_RECURSE SOURCES
 # Include the header files
 file(GLOB_RECURSE HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.hpp
 )
 
 # Include the Lexer
