@@ -12,13 +12,12 @@
 
 class Parser {
 public:
-  Parser(const std::string& code);
-  std::unique_ptr<Program> parse(bool devMode, bool devLexer);
+  Parser(const std::vector<Token>& tokens);
+  std::unique_ptr<Program> parse(bool devMode);
 
-  const std::string code;
+  std::vector<Token> tokens;
 
 private:
-  std::vector<Token> tokens;
 
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();

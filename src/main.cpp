@@ -2,11 +2,12 @@
 
 int main(int argc, char* argv[]) {
   bool dev = false;
-  bool devLexer = false;
   bool output = false;
+  bool devLexer = false;
+  bool outputLexer = false;
   std::string filename;
 
-  if (argc < 2 || argc > 3) {
+  if (argc < 2) {
     std::cerr << "Run \"" << argv[0] << " <filename>.sqz --help\" for more information" << std::endl;
     return 1;
   }
@@ -19,6 +20,7 @@ int main(int argc, char* argv[]) {
       std::cout << "  --dev: Enable developer mode" << std::endl;
       std::cout << "  --output: Export tokens to output.log" << std::endl;
       std::cout << "  --dev-lexer: Enable developer mode for the lexer" << std::endl;
+      std::cout << "  --output-lexer: Export tokens to output.log" << std::endl;
       return 0;
     } else if (std::strcmp(argv[i], "--dev") == 0) {
       dev = true;
@@ -26,6 +28,8 @@ int main(int argc, char* argv[]) {
       output = true;
     } else if (std::strcmp(argv[i], "--dev-lexer") == 0) {
       devLexer = true;
+    } else if (std::strcmp(argv[i], "--output-lexer") == 0) {
+      outputLexer = true;
     }
   }
 
@@ -48,15 +52,28 @@ int main(int argc, char* argv[]) {
     code += line + "\n";
   }
 
-  Parser parser(code);
-  std::unique_ptr<Program> ast = parser.parse(dev, devLexer);
+  Lexer lexer(code);
+  std::vector<Token> tokens = lexer.tokenize(devLexer);
 
-  if (output) {
+  Parser parser(tokens);
+  std::unique_ptr<Program> ast = parser.parse(dev);
+
+  if (output || outputLexer) {
     std::ofstream outputFile("output.log");
     if (outputFile.is_open()) {
-      outputFile << ast->toString() << std::endl;
+      if (output) {
+        outputFile << "##### Lexer #####" << std::endl;
+        for (const auto& token : tokens) {
+          outputFile << token.toString() << "\n" << std::endl;
+        }
+        std::cout << "Tokens exported to output.log" << std::endl;
+      }
+      if (outputLexer) {
+        outputFile << "##### Parser #####" << std::endl;
+        outputFile << ast->toString() << std::endl;
+        std::cout << "AST exported to output.log" << std::endl;
+      }
       outputFile.close();
-      std::cout << "AST exported to output.log" << std::endl;
     } else {
       std::cerr << "Unable to open file: output.log" << std::endl;
     }
