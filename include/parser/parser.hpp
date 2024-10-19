@@ -33,6 +33,7 @@ private:
   std::vector<std::unique_ptr<Expr>> parseArgumentsList();
   std::unique_ptr<Expr> parseMemberExpr();
   std::unique_ptr<Expr> parsePrimaryExpr();
+  void parseComment();
   std::unique_ptr<Stmt> parseLogStatement();
 
   bool isEOF();

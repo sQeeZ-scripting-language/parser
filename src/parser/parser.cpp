@@ -14,7 +14,10 @@ std::unique_ptr<Program> Parser::buildAST() {
   program->kind = NodeType::Program;
 
   while (!isEOF()) {
-    program->body.push_back(parseStatement());
+    auto statement = parseStatement();
+    if (statement != nullptr) {
+      program->body.push_back(std::move(statement));
+    }
   }
 
   return program;
@@ -34,6 +37,9 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
     }
   } else if (peek().tag == Token::TypeTag::LOG) {
     return parseLogStatement();
+  } else if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::INLINE_COMMENT) {
+    parseComment();
+    return nullptr;
   } else {
     return parseExpression();
   }
@@ -270,6 +276,9 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         value = assertToken("DataToken::STRING_LITERAL", "Expected string literal").value;
         assertToken("SyntaxToken::DOUBLE_QUOTE", "Expected closing double quote");
         return std::make_unique<StringLiteral>(StringLiteral{value});
+      case SyntaxToken::INLINE_COMMENT:
+        parseComment();
+        return nullptr;
       default:
         break;
     }
@@ -278,6 +287,13 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
   std::cerr << "Unexpected token: " << token.plainText << std::endl;
   assert(false);
   return nullptr;
+}
+
+void Parser::parseComment() {
+  assertToken("SyntaxToken::INLINE_COMMENT", "Expected inline comment token");
+  if (peek().tag == Token::TypeTag::DATA && peek().type.dataToken == DataToken::COMMENT_LITERAL) {
+    advance();
+  }
 }
 
 std::unique_ptr<Stmt> Parser::parseLogStatement() {
