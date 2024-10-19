@@ -276,6 +276,10 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         value = assertToken("DataToken::STRING_LITERAL", "Expected string literal").value;
         assertToken("SyntaxToken::DOUBLE_QUOTE", "Expected closing double quote");
         return std::make_unique<StringLiteral>(StringLiteral{value});
+      case SyntaxToken::HASHTAG:
+        advance();
+        value = assertToken("DataToken::HEX_CODE_LITERAL", "Expected hex code literal").value;
+        return std::make_unique<HexCodeLiteral>(HexCodeLiteral{"#" + value});
       case SyntaxToken::INLINE_COMMENT:
         parseComment();
         return nullptr;

@@ -26,6 +26,7 @@ enum class NodeType {
   IntegerLiteral,
   DoubleLiteral,
   StringLiteral,
+  HexCodeLiteral,
   Identifier,
   BinaryExpr,
 
@@ -218,6 +219,15 @@ public:
   explicit StringLiteral(std::string value) : Expr(NodeType::StringLiteral), value(std::move(value)) {}
 
   std::string toString() const override { return "StringLiteral: \"" + value + "\""; }
+};
+
+class HexCodeLiteral : public Expr {
+public:
+  std::string value;
+
+  explicit HexCodeLiteral(std::string value) : Expr(NodeType::HexCodeLiteral), value(std::move(value)) {}
+
+  std::string toString() const override { return "HexCodeLiteral: " + value; }
 };
 
 class Property : public Expr {
