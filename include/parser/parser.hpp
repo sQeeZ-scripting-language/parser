@@ -18,7 +18,6 @@ public:
   std::vector<Token> tokens;
 
 private:
-
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();
   std::unique_ptr<Stmt> parseFunctionDeclaration();

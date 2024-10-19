@@ -259,7 +259,7 @@ public:
 
 // Custom AST nodes
 class LogStatement : public Stmt {
- public:
+public:
   std::string logType;
   std::unique_ptr<Expr> message;
   std::unique_ptr<Expr> color;
