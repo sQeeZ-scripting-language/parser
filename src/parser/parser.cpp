@@ -72,7 +72,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   bool isConstant = (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::CONSTANT);
   advance();
   std::string identifier =
-      assertToken("DataToken::IDENTIFIER", "Expected identifier name following let | const keywords.").value;
+      assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.").value;
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON) {
     advance();

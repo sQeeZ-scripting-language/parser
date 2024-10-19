@@ -55,25 +55,28 @@ int main(int argc, char* argv[]) {
   Lexer lexer(code);
   std::vector<Token> tokens = lexer.tokenize(devLexer);
 
+  if (outputLexer) {
+    std::ofstream outputFileLexer("output-lexer.log");
+    if (outputFileLexer.is_open()) {
+      for (const auto& token : tokens) {
+        outputFileLexer << token.toString() << "\n" << std::endl;
+      }
+      outputFileLexer.close();
+      std::cout << "Tokens exported to output.log" << std::endl;
+    } else {
+      std::cerr << "Unable to open file: output.log" << std::endl;
+    }
+  }
+
   Parser parser(tokens);
   std::unique_ptr<Program> ast = parser.parse(dev);
 
-  if (output || outputLexer) {
+  if (output) {
     std::ofstream outputFile("output.log");
     if (outputFile.is_open()) {
-      if (outputLexer) {
-        outputFile << "##### Lexer #####" << std::endl;
-        for (const auto& token : tokens) {
-          outputFile << token.toString() << "\n" << std::endl;
-        }
-        std::cout << "Tokens exported to output.log" << std::endl;
-      }
-      if (output) {
-        outputFile << "##### Parser #####" << std::endl;
-        outputFile << ast->toString() << std::endl;
-        std::cout << "AST exported to output.log" << std::endl;
-      }
+      outputFile << ast->toString() << std::endl;
       outputFile.close();
+      std::cout << "AST exported to output.log" << std::endl;
     } else {
       std::cerr << "Unable to open file: output.log" << std::endl;
     }
