@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
       std::cout << "Flags:" << std::endl;
       std::cout << "  --help: Display this information" << std::endl;
       std::cout << "  --dev: Enable developer mode" << std::endl;
-      std::cout << "  --output: Export tokens to output.log" << std::endl;
+      std::cout << "  --output: Export AST to output.log" << std::endl;
       std::cout << "  --dev-lexer: Enable developer mode for the lexer" << std::endl;
       std::cout << "  --output-lexer: Export tokens to output.log" << std::endl;
       return 0;

@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "lexer/tokens/token.hpp"
+
 enum class NodeType {
   // STATEMENTS
   Program,
