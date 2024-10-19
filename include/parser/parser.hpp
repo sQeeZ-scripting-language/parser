@@ -24,6 +24,8 @@ private:
   std::unique_ptr<Stmt> parseVarDeclaration();
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseAssignmentExpr();
+  std::unique_ptr<Expr> parseLogicalExpr();
+  std::unique_ptr<Expr> parseEqualityExpr();
   std::unique_ptr<Expr> parseObjectExpr();
   std::unique_ptr<Expr> parseAdditiveExpr();
   std::unique_ptr<Expr> parseMultiplicativeExpr();

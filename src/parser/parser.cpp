@@ -99,12 +99,36 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
 std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }
 
 std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
-  auto left = parseObjectExpr();
+  auto left = parseLogicalExpr();
 
   if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
     advance();
     auto value = parseAssignmentExpr();
     return std::make_unique<AssignmentExpr>(std::move(left), std::move(value));
+  }
+
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseLogicalExpr() {
+  auto left = parseEqualityExpr();
+
+  while (peek().value == "&&" || peek().value == "||") {
+    std::string op = advance().value;
+    auto right = parseEqualityExpr();
+    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
+  }
+
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseEqualityExpr() {
+  auto left = parseObjectExpr();
+
+  while (peek().value == "==" || peek().value == "!=") {
+    std::string op = advance().value;
+    auto right = parseObjectExpr();
+    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
   }
 
   return left;
