@@ -14,6 +14,8 @@ enum class NodeType {
   Program,
   VarDeclaration,
   FunctionDeclaration,
+  ConditionalStatement,
+  LogStmt,
 
   // EXPRESSIONS
   AssignmentExpr,
@@ -28,10 +30,7 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   Identifier,
-  BinaryExpr,
-
-  // CUSTOM
-  LogStmt
+  BinaryExpr
 };
 
 // Base class for all AST nodes
@@ -46,6 +45,12 @@ class Stmt : public ASTNode {
 public:
   NodeType kind;
   explicit Stmt(const NodeType& kind) : kind(kind) {}
+};
+
+// Expressions (result in a runtime value)
+class Expr : public Stmt {
+public:
+  explicit Expr(const NodeType& kind) : Stmt(kind) {}
 };
 
 class Program : public Stmt {
@@ -112,10 +117,63 @@ public:
   }
 };
 
-// Expressions (result in a runtime value)
-class Expr : public Stmt {
+class ConditionalStatement : public Stmt {
 public:
-  explicit Expr(const NodeType& kind) : Stmt(kind) {}
+  std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause;
+  std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses;
+  std::vector<std::unique_ptr<Stmt>> elseBody;
+
+  ConditionalStatement(std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause,
+                       std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses,
+                       std::vector<std::unique_ptr<Stmt>> elseBody)
+      : Stmt(NodeType::ConditionalStatement),
+        ifClause(std::move(ifClause)),
+        elifClauses(std::move(elifClauses)),
+        elseBody(std::move(elseBody)) {}
+
+  std::string toString() const override {
+    std::string result = "ConditionalStatement: ";
+    result += "if (" + ifClause.first->toString() + ") {\n";
+    for (const auto& stmt : ifClause.second) {
+      result += "    " + stmt->toString() + "\n";
+    }
+    result += "  }\n";
+    for (const auto& elifClause : elifClauses) {
+      result += "  elif (" + elifClause.first->toString() + ") {\n";
+      for (const auto& stmt : elifClause.second) {
+        result += "    " + stmt->toString() + "\n";
+      }
+      result += "  }\n";
+    }
+    if (!elseBody.empty()) {
+      result += "  else {\n";
+      for (const auto& stmt : elseBody) {
+        result += "    " + stmt->toString() + "\n";
+      }
+      result += "  }";
+    }
+    return result;
+  }
+};
+
+class LogStmt : public Stmt {
+public:
+  Token logType;
+  std::unique_ptr<Expr> message;
+  std::unique_ptr<Expr> color;
+
+  LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
+      : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
+
+  virtual std::string toString() const override {
+    std::stringstream ss;
+    ss << logType.plainText << "(" << message->toString();
+    if (color) {
+      ss << ", " << color->toString();
+    }
+    ss << ")";
+    return ss.str();
+  }
 };
 
 class AssignmentExpr : public Expr {
@@ -266,27 +324,6 @@ public:
     }
     oss << " }";
     return oss.str();
-  }
-};
-
-// Custom AST nodes
-class LogStmt : public Stmt {
-public:
-  Token logType;
-  std::unique_ptr<Expr> message;
-  std::unique_ptr<Expr> color;
-
-  LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
-      : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
-
-  virtual std::string toString() const override {
-    std::stringstream ss;
-    ss << logType.plainText << "(" << message->toString();
-    if (color) {
-      ss << ", " << color->toString();
-    }
-    ss << ")";
-    return ss.str();
   }
 };
 

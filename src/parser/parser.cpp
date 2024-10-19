@@ -32,6 +32,8 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
         return parseVarDeclaration();
       case KeywordToken::FUNCTION:
         return parseFunctionDeclaration();
+      case KeywordToken::IF:
+        return parseConditionalStatement();
       default:
         return parseExpression();
     }
@@ -43,6 +45,15 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
   } else {
     return parseExpression();
   }
+}
+
+std::vector<std::unique_ptr<Stmt>> Parser::parseStatementBlock() {
+  std::vector<std::unique_ptr<Stmt>> statements;
+  while (!isEOF() && !(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACE)) {
+    statements.push_back(parseStatement());
+  }
+  assertToken("SyntaxToken::CLOSE_BRACE", "Expected '}' to close statement block");
+  return statements;
 }
 
 std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
@@ -61,12 +72,7 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
   }
 
   assertToken("SyntaxToken::OPEN_BRACE", "Expected function body following declaration");
-  std::vector<std::unique_ptr<Stmt>> body;
-
-  while (!isEOF() && !(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACE)) {
-    body.push_back(parseStatement());
-  }
-
+  std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
   assertToken("SyntaxToken::CLOSE_BRACE", "Closing brace expected inside function declaration");
 
   auto fn = std::make_unique<FunctionDeclaration>(name, std::move(params), std::move(body));
@@ -94,6 +100,40 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   assertToken("SyntaxToken::SEMICOLON", "Variable declaration statment must end with semicolon.");
 
   return std::make_unique<VarDeclaration>(isConstant, identifier, std::move(value));
+}
+
+std::unique_ptr<Stmt> Parser::parseConditionalStatement() {
+  // if clause
+  assertToken("KeywordToken::IF", "Expected 'if' keyword to start conditional statement.");
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected open parenthesis following 'if' keyword.");
+  auto condition = parseLogicalExpr();
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected closing parenthesis following if condition.");
+  assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after if condition.");
+  std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+  std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause = {std::move(condition),
+                                                                                   std::move(body)};
+
+  // elif clauses
+  std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses = {};
+  while (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::ELSE_IF) {
+    assertToken("KeywordToken::ELSE_IF", "Expected 'elif' keyword to start elif clause.");
+    assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after 'elif'.");
+    auto elifCondition = parseLogicalExpr();
+    assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after elif condition.");
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after elif condition.");
+    auto elifBody = parseStatementBlock();
+    elifClauses.push_back({std::move(elifCondition), std::move(elifBody)});
+  }
+
+  // else clause
+  std::vector<std::unique_ptr<Stmt>> elseBody = {};
+  if (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::ELSE) {
+    assertToken("KeywordToken::ELSE", "Expected 'else' keyword to start else clause.");
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after 'else'.");
+    elseBody = parseStatementBlock();
+  }
+
+  return std::make_unique<ConditionalStatement>(std::move(ifClause), std::move(elifClauses), std::move(elseBody));
 }
 
 std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }

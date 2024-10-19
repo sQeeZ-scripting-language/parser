@@ -20,8 +20,10 @@ public:
 private:
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();
+  std::vector<std::unique_ptr<Stmt>> parseStatementBlock();
   std::unique_ptr<Stmt> parseFunctionDeclaration();
   std::unique_ptr<Stmt> parseVarDeclaration();
+  std::unique_ptr<Stmt> parseConditionalStatement();
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseAssignmentExpr();
   std::unique_ptr<Expr> parseLogicalExpr();
