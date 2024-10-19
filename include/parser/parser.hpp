@@ -12,14 +12,12 @@
 
 class Parser {
 public:
-  Parser(const std::string& code);
-  std::unique_ptr<Program> parse(bool devMode, bool devLexer);
+  Parser(const std::vector<Token>& tokens);
+  std::unique_ptr<Program> parse(bool devMode);
 
-  const std::string code;
-
-private:
   std::vector<Token> tokens;
 
+private:
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();
   std::unique_ptr<Stmt> parseFunctionDeclaration();
@@ -35,6 +33,7 @@ private:
   std::vector<std::unique_ptr<Expr>> parseArgumentsList();
   std::unique_ptr<Expr> parseMemberExpr();
   std::unique_ptr<Expr> parsePrimaryExpr();
+  std::unique_ptr<Stmt> parseLogStatement();
 
   bool isEOF();
   Token peek();
