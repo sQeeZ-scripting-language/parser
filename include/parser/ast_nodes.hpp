@@ -28,7 +28,7 @@ enum class NodeType {
   BinaryExpr,
 
   // CUSTOM
-  LogStatement
+  LogStmt
 };
 
 // Base class for all AST nodes
@@ -258,14 +258,14 @@ public:
 };
 
 // Custom AST nodes
-class LogStatement : public Stmt {
+class LogStmt : public Stmt {
 public:
   Token logType;
   std::unique_ptr<Expr> message;
   std::unique_ptr<Expr> color;
 
-  LogStatement(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
-      : Stmt(NodeType::LogStatement), logType(logType), message(std::move(message)), color(std::move(color)) {}
+  LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
+      : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
 
   virtual std::string toString() const override {
     std::stringstream ss;

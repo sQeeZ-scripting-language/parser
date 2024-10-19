@@ -294,7 +294,7 @@ std::unique_ptr<Stmt> Parser::parseLogStatement() {
 
   assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after log function call.");
   assertToken("SyntaxToken::SEMICOLON", "Expected ';' after log function call.");
-  return std::make_unique<LogStatement>(logType, std::move(messageExpr), std::move(colorExpr));
+  return std::make_unique<LogStmt>(logType, std::move(messageExpr), std::move(colorExpr));
 }
 
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
