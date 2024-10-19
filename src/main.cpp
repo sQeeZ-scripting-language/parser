@@ -61,14 +61,14 @@ int main(int argc, char* argv[]) {
   if (output || outputLexer) {
     std::ofstream outputFile("output.log");
     if (outputFile.is_open()) {
-      if (output) {
+      if (outputLexer) {
         outputFile << "##### Lexer #####" << std::endl;
         for (const auto& token : tokens) {
           outputFile << token.toString() << "\n" << std::endl;
         }
         std::cout << "Tokens exported to output.log" << std::endl;
       }
-      if (outputLexer) {
+      if (output) {
         outputFile << "##### Parser #####" << std::endl;
         outputFile << ast->toString() << std::endl;
         std::cout << "AST exported to output.log" << std::endl;

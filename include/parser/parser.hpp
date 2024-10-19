@@ -34,6 +34,7 @@ private:
   std::vector<std::unique_ptr<Expr>> parseArgumentsList();
   std::unique_ptr<Expr> parseMemberExpr();
   std::unique_ptr<Expr> parsePrimaryExpr();
+  std::unique_ptr<Stmt> parseLogStatement();
 
   bool isEOF();
   Token peek();

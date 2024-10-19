@@ -32,6 +32,8 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
       default:
         return parseExpression();
     }
+  } else if (peek().tag == Token::TypeTag::LOG) {
+    return parseLogStatement();
   } else {
     return parseExpression();
   }
@@ -248,24 +250,52 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         return std::make_unique<IntegerLiteral>(IntegerLiteral{std::stoi(advance().value)});
       case DataToken::DOUBLE_LITERAL:
         return std::make_unique<DoubleLiteral>(DoubleLiteral{std::stod(advance().value)});
-      case DataToken::STRING_LITERAL:
-        return std::make_unique<StringLiteral>(StringLiteral{advance().value});
       case DataToken::IDENTIFIER:
         return std::make_unique<Identifier>(Identifier{advance().value});
       default:
         break;
     }
-  } else if (token.tag == Token::TypeTag::SYNTAX && token.type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
-    advance();
-    auto expression = parseExpression();
-    assertToken("SyntaxToken::CLOSE_PARENTHESIS",
-                "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
-    return expression;
+  } else if (token.tag == Token::TypeTag::SYNTAX) {
+    std::unique_ptr<Expr> expression;
+    std::string value;
+    switch (token.type.syntaxToken) {
+      case SyntaxToken::OPEN_PARENTHESIS:
+        advance();
+        expression = parseExpression();
+        assertToken("SyntaxToken::CLOSE_PARENTHESIS",
+                    "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
+        return expression;
+      case SyntaxToken::DOUBLE_QUOTE:
+        advance();
+        value = assertToken("DataToken::STRING_LITERAL", "Expected string literal").value;
+        assertToken("SyntaxToken::DOUBLE_QUOTE", "Expected closing double quote");
+        return std::make_unique<StringLiteral>(StringLiteral{value});
+      default:
+        break;
+    }
   }
 
   std::cerr << "Unexpected token: " << token.plainText << std::endl;
   assert(false);
   return nullptr;
+}
+
+std::unique_ptr<Stmt> Parser::parseLogStatement() {
+  Token logType = peek();
+  advance();
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after log function call.");
+
+  auto messageExpr = parseExpression();
+
+  std::unique_ptr<Expr> colorExpr = nullptr;
+  if (logType.tag == Token::TypeTag::LOG && logType.type.logToken == LogToken::COLORED) {
+    assertToken("SyntaxToken::COMMA", "Expected ',' between message and color in logc.");
+    colorExpr = parseExpression();
+  }
+
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after log function call.");
+  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after log function call.");
+  return std::make_unique<LogStatement>(logType.plainText, std::move(messageExpr), std::move(colorExpr));
 }
 
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
