@@ -260,16 +260,16 @@ public:
 // Custom AST nodes
 class LogStatement : public Stmt {
 public:
-  std::string logType;
+  Token logType;
   std::unique_ptr<Expr> message;
   std::unique_ptr<Expr> color;
 
-  LogStatement(const std::string& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
+  LogStatement(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
       : Stmt(NodeType::LogStatement), logType(logType), message(std::move(message)), color(std::move(color)) {}
 
   virtual std::string toString() const override {
     std::stringstream ss;
-    ss << logType << "(" << message->toString();
+    ss << logType.plainText << "(" << message->toString();
     if (color) {
       ss << ", " << color->toString();
     }

@@ -281,8 +281,7 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
 }
 
 std::unique_ptr<Stmt> Parser::parseLogStatement() {
-  Token logType = peek();
-  advance();
+  Token logType = advance();
   assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after log function call.");
 
   auto messageExpr = parseExpression();
@@ -295,7 +294,7 @@ std::unique_ptr<Stmt> Parser::parseLogStatement() {
 
   assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after log function call.");
   assertToken("SyntaxToken::SEMICOLON", "Expected ';' after log function call.");
-  return std::make_unique<LogStatement>(logType.plainText, std::move(messageExpr), std::move(colorExpr));
+  return std::make_unique<LogStatement>(logType, std::move(messageExpr), std::move(colorExpr));
 }
 
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
