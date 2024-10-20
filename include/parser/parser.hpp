@@ -47,6 +47,7 @@ private:
   std::unique_ptr<Expr> parsePrimaryExpr();
   void parseComment();
   std::unique_ptr<Stmt> parseLogStatement();
+  std::unique_ptr<Expr> parseShortData();
 
   bool isEOF();
   Token peek();
