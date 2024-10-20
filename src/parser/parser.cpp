@@ -392,6 +392,10 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         return std::make_unique<IntegerLiteral>(IntegerLiteral{std::stoi(advance().value)});
       case DataToken::DOUBLE_LITERAL:
         return std::make_unique<DoubleLiteral>(DoubleLiteral{std::stod(advance().value)});
+      case DataToken::BOOLEAN_LITERAL:
+        return std::make_unique<BooleanLiteral>(BooleanLiteral{advance().value == "true"});
+      case DataToken::NULL_LITERAL:
+        return std::make_unique<NullLiteral>(NullLiteral{});
       case DataToken::IDENTIFIER:
         return std::make_unique<Identifier>(Identifier{advance().value});
       default:
@@ -412,6 +416,11 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         value = assertToken("DataToken::STRING_LITERAL", "Expected string literal").value;
         assertToken("SyntaxToken::DOUBLE_QUOTE", "Expected closing double quote");
         return std::make_unique<StringLiteral>(StringLiteral{value});
+      case SyntaxToken::SINGLE_QUOTE:
+        advance();
+        value = assertToken("DataToken::CHAR_LITERAL", "Expected character literal").value;
+        assertToken("SyntaxToken::SINGLE_QUOTE", "Expected closing single quote");
+        return std::make_unique<CharLiteral>(CharLiteral{value[0]});
       case SyntaxToken::HASHTAG:
         advance();
         value = assertToken("DataToken::HEX_CODE_LITERAL", "Expected hex code literal").value;

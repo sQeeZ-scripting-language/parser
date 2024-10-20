@@ -32,6 +32,8 @@ enum class NodeType {
   IntegerLiteral,
   DoubleLiteral,
   StringLiteral,
+  CharLiteral,
+  BooleanLiteral,
   HexCodeLiteral,
   Identifier
 };
@@ -325,6 +327,31 @@ public:
   explicit StringLiteral(std::string value) : Expr(NodeType::StringLiteral), value(std::move(value)) {}
 
   std::string toString() const override { return "StringLiteral: \"" + value + "\""; }
+};
+
+class CharLiteral : public Expr {
+public:
+  char value;
+
+  explicit CharLiteral(char value) : Expr(NodeType::CharLiteral), value(value) {}
+
+  std::string toString() const override { return "CharLiteral: '" + std::string(1, value) + "'"; }
+};
+
+class BooleanLiteral : public Expr {
+public:
+  bool value;
+
+  explicit BooleanLiteral(bool value) : Expr(NodeType::BooleanLiteral), value(value) {}
+
+  std::string toString() const override { return "BooleanLiteral: " + std::to_string(value); }
+};
+
+class NullLiteral : public Expr {
+public:
+  explicit NullLiteral() : Expr(NodeType::BooleanLiteral) {}
+
+  std::string toString() const override { return "NullLiteral"; }
 };
 
 class HexCodeLiteral : public Expr {
