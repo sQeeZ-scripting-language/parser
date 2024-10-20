@@ -380,9 +380,21 @@ std::unique_ptr<Expr> Parser::parseMultiplicativeExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parsePowerExpr() {
-  auto left = parseCallMemberExpr();
+  auto left = parseShortExpr();
 
   while (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::POTENTIATION) {
+    std::string op = advance().value;
+    auto right = parseShortExpr();
+    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
+  }
+
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseShortExpr() {
+  auto left = parseCallMemberExpr();
+
+  while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
     std::string op = advance().value;
     auto right = parseCallMemberExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);

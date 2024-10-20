@@ -39,6 +39,7 @@ private:
   std::unique_ptr<Expr> parseAdditiveExpr();
   std::unique_ptr<Expr> parseMultiplicativeExpr();
   std::unique_ptr<Expr> parsePowerExpr();
+  std::unique_ptr<Expr> parseShortExpr();
   std::unique_ptr<Expr> parseCallMemberExpr();
   std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> caller);
   std::vector<std::unique_ptr<Expr>> parseArgs();
