@@ -20,8 +20,11 @@ enum class NodeType {
 
   // EXPRESSIONS
   AssignmentExpr,
+  CompoundAssignmentExpr,
   MemberExpr,
   CallExpr,
+  UnaryExpr,
+  BinaryExpr,
 
   // LITERALS
   Property,
@@ -30,8 +33,7 @@ enum class NodeType {
   DoubleLiteral,
   StringLiteral,
   HexCodeLiteral,
-  Identifier,
-  BinaryExpr
+  Identifier
 };
 
 // Base class for all AST nodes
@@ -200,6 +202,40 @@ public:
     return "AssignmentExpr: " + assignee->toString() + " = " + value->toString();
   }
 };
+
+class CompoundAssignmentExpr : public Expr {
+public:
+  std::unique_ptr<Expr> assignee;
+  std::unique_ptr<Expr> value;
+  std::string operator_;
+
+  CompoundAssignmentExpr(std::unique_ptr<Expr> assignee, std::unique_ptr<Expr> value, const std::string& operator_)
+      : Expr(NodeType::CompoundAssignmentExpr), assignee(std::move(assignee)), value(std::move(value)), operator_(operator_) {}
+
+  std::string toString() const override {
+    return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + "= " + value->toString();
+  }
+};
+
+class UnaryExpr : public Expr {
+ public:
+  Token op;
+  std::unique_ptr<Expr> operand;
+  bool isPrefix;
+
+  UnaryExpr(Token op, std::unique_ptr<Expr> operand, bool isPrefix)
+      : Expr(NodeType::UnaryExpr), op(op), operand(std::move(operand)), isPrefix(isPrefix) {}
+
+  std::string toString() const override {
+    if (isPrefix) {
+      return op.value + operand->toString();
+    } else {
+      return operand->toString() + op.value;
+    }
+  }
+};
+
+
 
 class BinaryExpr : public Expr {
 public:

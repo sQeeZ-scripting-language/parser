@@ -161,10 +161,30 @@ std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); 
 std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
   auto left = parseLogicalExpr();
 
-  if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
-    advance();
-    auto value = parseAssignmentExpr();
-    return std::make_unique<AssignmentExpr>(std::move(left), std::move(value));
+  if (peek().tag == Token::TypeTag::OPERATOR) {
+    std::unique_ptr<Expr> value = nullptr;
+    std::string op;
+    std::unique_ptr<Expr> expression = nullptr;
+    switch (peek().type.operatorToken) {
+      case OperatorToken::ASSIGN:
+        advance();
+        value = parseAssignmentExpr();
+        expression = std::make_unique<AssignmentExpr>(std::move(left), std::move(value));
+        assertToken("SyntaxToken::SEMICOLON", "Expected ';' after assignment expression.");
+        return expression;
+      case OperatorToken::ADDITION_ASSIGNMENT:
+      case OperatorToken::SUBTRACTION_ASSIGNMENT:
+      case OperatorToken::MULTIPLICATION_ASSIGNMENT:
+      case OperatorToken::DIVISION_ASSIGNMENT:
+      case OperatorToken::MODULUS_ASSIGNMENT:
+        op = advance().value;
+        value = parseAssignmentExpr();
+        expression = std::make_unique<CompoundAssignmentExpr>(std::move(left), std::move(value), op);
+        assertToken("SyntaxToken::SEMICOLON", "Expected ';' after assignment expression.");
+        return expression;
+      default:
+        break;
+    }
   }
 
   return left;
@@ -281,13 +301,19 @@ std::unique_ptr<Expr> Parser::parsePowerExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseCallMemberExpr() {
-  auto member = parseMemberExpr();
+  auto expression = parseMemberExpr();
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
-    return parseCallExpr(std::move(member));
+    return parseCallExpr(std::move(expression));
   }
 
-  return member;
+  if (peek().tag == Token::TypeTag::OPERATOR &&
+      (peek().type.operatorToken == OperatorToken::INCREMENT || peek().type.operatorToken == OperatorToken::DECREMENT)) {
+    Token operatorToken = advance();
+    return std::make_unique<UnaryExpr>(operatorToken, std::move(expression), false);
+  }  
+
+  return expression;
 }
 
 std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> caller) {
@@ -392,6 +418,14 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
       case SyntaxToken::INLINE_COMMENT:
         parseComment();
         return nullptr;
+      default:
+        break;
+    } 
+  } else if (token.tag == Token::TypeTag::OPERATOR) {
+    switch (token.type.operatorToken) {
+      case OperatorToken::INCREMENT:
+      case OperatorToken::DECREMENT:
+        return std::make_unique<UnaryExpr>(advance(), parsePrimaryExpr(), true);
       default:
         break;
     }
