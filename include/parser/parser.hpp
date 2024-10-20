@@ -1,7 +1,6 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 
-#include <cassert>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -18,6 +17,7 @@ public:
   std::vector<Token> tokens;
 
 private:
+  void handleException(const std::exception &e);
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();
   std::vector<std::unique_ptr<Stmt>> parseStatementBlock();

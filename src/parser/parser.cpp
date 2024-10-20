@@ -9,17 +9,30 @@ std::unique_ptr<Program> Parser::parse(bool devMode) {
   return std::move(ast);
 }
 
+void Parser::handleException(const std::exception &e) {
+  std::string exceptionType = typeid(e).name();
+
+  std::cerr << "\033[1;30m\033[41m[sQeeZ]: "
+            << "Exception of type: " << exceptionType
+            << " - Message: " << e.what() << "\033[0m" << std::endl;
+
+  std::exit(EXIT_FAILURE);
+}
+
 std::unique_ptr<Program> Parser::buildAST() {
   auto program = std::make_unique<Program>();
   program->kind = NodeType::Program;
 
-  while (!isEOF()) {
-    auto statement = parseStatement();
-    if (statement != nullptr) {
-      program->body.push_back(std::move(statement));
+  try {
+    while (!isEOF()) {
+      auto statement = parseStatement();
+      if (statement != nullptr) {
+        program->body.push_back(std::move(statement));
+      }
     }
+  } catch (const std::exception &e) {
+    handleException(e);
   }
-
   return program;
 }
 
@@ -68,7 +81,7 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
   for (const auto& arg : args) {
     if (arg->kind != NodeType::Identifier) {
       std::cerr << arg.get() << std::endl;
-      throw std::runtime_error("Inside function declaration expected parameters to be of type string.");
+      throw std::invalid_argument("Expected identifiers in function arguments list.");
     }
     params.push_back(static_cast<Identifier*>(arg.get())->symbol);
   }
@@ -90,7 +103,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON) {
     advance();
     if (isConstant) {
-      throw std::runtime_error("Must assign value to constant expression. No value provided.");
+      throw std::invalid_argument("Must assign value to constant expression. No value provided.");
     }
 
     return std::make_unique<VarDeclaration>(false, identifier, nullptr);
@@ -318,7 +331,7 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       computed = false;
       property = parsePrimaryExpr();
       if (property->kind != NodeType::Identifier) {
-        throw std::runtime_error("Cannot use dot operator without right-hand side being an identifier.");
+        throw std::invalid_argument("Cannot use dot operator without right-hand side being an identifier.");
       }
     }
     // bracket notation
@@ -374,10 +387,7 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         break;
     }
   }
-
-  std::cerr << "Unexpected token: " << token.plainText << std::endl;
-  assert(false);
-  return nullptr;
+  throw std::logic_error("Unexpected token \"" + token.plainText + "\" found in primary expression.");
 }
 
 void Parser::parseComment() {
@@ -417,8 +427,7 @@ Token Parser::advance() {
 Token Parser::assertToken(const std::string& expected, const std::string& errorMessage) {
   Token token = advance();
   if (token.plainText != expected) {
-    std::cerr << errorMessage << std::endl;
-    assert(false);
+    throw std::invalid_argument("Unexpected token found: " + token.plainText + "\n" + errorMessage);
   }
   return token;
 }
