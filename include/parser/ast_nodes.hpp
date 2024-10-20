@@ -201,19 +201,19 @@ public:
 
 class ForStmt : public Stmt {
 public: 
-  std::unique_ptr<Stmt> initializer;
+  std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> condition;
   std::unique_ptr<Expr> increment;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ForStmt(std::unique_ptr<Stmt> initializer, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), initializer(std::move(initializer)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
+  ForStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment, std::vector<std::unique_ptr<Stmt>> body)
+      : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
 
   std::string toString() const override {
     std::string result = "ForStmt: ";
     result += "for (";
-    if (initializer) {
-      result += initializer->toString();
+    if (iterator) {
+      result += iterator->toString();
     }
     result += "; ";
     if (condition) {
@@ -234,11 +234,11 @@ public:
 
 class ForInStmt : public Stmt {
 public: 
-  std::unique_ptr<Expr> iterator;
+  std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> iterable;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ForInStmt(std::unique_ptr<Expr> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
+  ForInStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), iterable(std::move(iterable)), body(std::move(body)) {}
 
   std::string toString() const override {
@@ -254,11 +254,11 @@ public:
 
 class ForOfStmt : public Stmt {
 public: 
-  std::unique_ptr<Expr> iterator;
+  std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> iterable;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ForOfStmt(std::unique_ptr<Expr> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
+  ForOfStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), iterable(std::move(iterable)), body(std::move(body)) {}
 
   std::string toString() const override {

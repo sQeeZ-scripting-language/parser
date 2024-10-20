@@ -43,11 +43,16 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
       case KeywordToken::CONSTANT:
       case KeywordToken::VARIABLE:
         return parseVarDeclaration();
-        return parseVarDeclaration();
       case KeywordToken::FUNCTION:
         return parseFunctionDeclaration();
       case KeywordToken::IF:
         return parseConditionalStatement();
+      case KeywordToken::WHILE:
+        return parseWhileStatement();
+      case KeywordToken::DO:
+        return parseDoWhileStatement();
+      case KeywordToken::FOR:
+        return parseForStatement();
       case KeywordToken::RETURN:
         return parseReturnStatement();
       default:
@@ -67,6 +72,7 @@ std::vector<std::unique_ptr<Stmt>> Parser::parseStatementBlock() {
   std::vector<std::unique_ptr<Stmt>> statements;
   while (!isEOF() && !(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACE)) {
     statements.push_back(parseStatement());
+    skipSemicolon();
   }
   assertToken("SyntaxToken::CLOSE_BRACE", "Expected '}' to close statement block");
   return statements;
@@ -105,11 +111,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
     assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
     value = parseExpression();
-  } else if (isConstant) {
-    throw std::invalid_argument("Must assign value to constant expression. No value provided.");
   }
-  
-  assertToken("SyntaxToken::SEMICOLON", "Variable declaration statment must end with semicolon.");
   return std::make_unique<VarDeclaration>(isConstant, identifier, std::move(value));
 }
 
@@ -145,6 +147,63 @@ std::unique_ptr<Stmt> Parser::parseConditionalStatement() {
   }
 
   return std::make_unique<ConditionalStatement>(std::move(ifClause), std::move(elifClauses), std::move(elseBody));
+}
+
+std::unique_ptr<Stmt> Parser::parseWhileStatement() {
+  advance();
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after 'while' keyword.");
+  auto condition = parseLogicalExpr();
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after while condition.");
+  assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after while condition.");
+  std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+  return std::make_unique<WhileStmt>(std::move(condition), std::move(body));
+}
+
+std::unique_ptr<Stmt> Parser::parseDoWhileStatement() {
+  advance();
+  assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after 'do' keyword.");
+  std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+  assertToken("KeywordToken::WHILE", "Expected 'while' keyword after do-while body.");
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after 'while' keyword.");
+  auto condition = parseLogicalExpr();
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after while condition.");
+  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after do-while statement.");
+  return std::make_unique<DoWhileStmt>(std::move(condition), std::move(body));
+}
+
+std::unique_ptr<Stmt> Parser::parseForStatement() {
+  advance();
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after 'for' keyword.");
+  std::unique_ptr<Stmt> iterator = parseVarDeclaration();
+  // Handle 'for-in' loop
+  if (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::IN) {
+      advance();
+      std::unique_ptr<Expr> iterable = parseExpression();
+      assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'in' expression.");
+      assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-in loop.");
+      std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+      return std::make_unique<ForInStmt>(std::move(iterator), std::move(iterable), std::move(body));
+  } 
+  // Handle 'for-of' loop
+  else if (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::OF) {
+      advance();
+      std::unique_ptr<Expr> iterable = parseExpression();
+      assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'of' expression.");
+      assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-of loop.");
+      std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+      return std::make_unique<ForOfStmt>(std::move(iterator), std::move(iterable), std::move(body));
+  }
+  // Handle basic for loop
+  else {
+    assertToken("SyntaxToken::SEMICOLON", "Expected ';' after for loop iterator.");
+    std::unique_ptr<Expr> condition = parseExpression();
+    assertToken("SyntaxToken::SEMICOLON", "Expected ';' after for loop condition.");
+    std::unique_ptr<Expr> increment = parseExpression();
+    assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after for loop increment statement.");
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for loop increment statement.");
+    std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+    return std::make_unique<ForStmt>(std::move(iterator), std::move(condition), std::move(increment), std::move(body));
+  }
 }
 
 std::unique_ptr<Stmt> Parser::parseReturnStatement() {
