@@ -99,20 +99,16 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   advance();
   std::string identifier =
       assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.").value;
-
-  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON) {
-    advance();
-    if (isConstant) {
-      throw std::invalid_argument("Must assign value to constant expression. No value provided.");
-    }
-
-    return std::make_unique<VarDeclaration>(false, identifier, nullptr);
+  
+  std::unique_ptr<Expr> value = nullptr;
+  if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
+    assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
+    value = parseExpression();
+  } else if (isConstant) {
+    throw std::invalid_argument("Must assign value to constant expression. No value provided.");
   }
-
-  assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
-  std::unique_ptr<Expr> value = parseExpression();
+  
   assertToken("SyntaxToken::SEMICOLON", "Variable declaration statment must end with semicolon.");
-
   return std::make_unique<VarDeclaration>(isConstant, identifier, std::move(value));
 }
 
@@ -187,9 +183,22 @@ std::unique_ptr<Expr> Parser::parseLogicalExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseEqualityExpr() {
-  auto left = parseObjectExpr();
+  auto left = parseRelationalExpr();
 
   while (peek().value == "==" || peek().value == "!=") {
+    std::string op = advance().value;
+    auto right = parseRelationalExpr();
+    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
+  }
+
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parseRelationalExpr() {
+  auto left = parseObjectExpr();
+
+  while (peek().value == "<" || peek().value == ">" || 
+         peek().value == "<=" || peek().value == ">=") {
     std::string op = advance().value;
     auto right = parseObjectExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
