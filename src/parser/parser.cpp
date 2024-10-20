@@ -296,7 +296,7 @@ std::unique_ptr<Expr> Parser::parseObjectExpr() {
   std::vector<std::unique_ptr<Property>> properties;
 
   while (!isEOF() && !(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACE)) {
-    std::string key = assertToken("DataToken::Identifier", "Object literal key expected").value;
+    std::string key = assertToken("DataToken::IDENTIFIER", "Object literal key expected").value;
 
     // pair -> { key, }
     if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
