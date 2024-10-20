@@ -21,6 +21,7 @@ enum class NodeType {
   // EXPRESSIONS
   AssignmentExpr,
   CompoundAssignmentExpr,
+  TernaryExpr,
   MemberExpr,
   CallExpr,
   UnaryExpr,
@@ -340,6 +341,23 @@ public:
 
   std::string toString() const override {
     return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + " " + value->toString();
+  }
+};
+
+class TernaryExpr : public Expr {
+public:
+  std::unique_ptr<Expr> condition;
+  std::unique_ptr<Expr> trueExpr;
+  std::unique_ptr<Expr> falseExpr;
+
+  TernaryExpr(std::unique_ptr<Expr> condition, std::unique_ptr<Expr> trueExpr, std::unique_ptr<Expr> falseExpr)
+      : Expr(NodeType::TernaryExpr),
+        condition(std::move(condition)),
+        trueExpr(std::move(trueExpr)),
+        falseExpr(std::move(falseExpr)) {}
+
+  std::string toString() const override {
+    return "TernaryExpr: " + condition->toString() + " ? " + trueExpr->toString() + " : " + falseExpr->toString();
   }
 };
 

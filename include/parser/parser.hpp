@@ -30,6 +30,7 @@ private:
   std::unique_ptr<Stmt> parseReturnStatement();
   std::unique_ptr<Expr> parseExpression();
   std::unique_ptr<Expr> parseAssignmentExpr();
+  std::unique_ptr<Expr> parseTernaryExpr();
   std::unique_ptr<Expr> parseLogicalExpr();
   std::unique_ptr<Expr> parseEqualityExpr();
   std::unique_ptr<Expr> parseRelationalExpr();

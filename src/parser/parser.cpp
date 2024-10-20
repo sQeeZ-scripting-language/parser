@@ -218,7 +218,7 @@ std::unique_ptr<Stmt> Parser::parseReturnStatement() {
 std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }
 
 std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
-  auto left = parseLogicalExpr();
+  auto left = parseTernaryExpr();
 
   if (peek().tag == Token::TypeTag::OPERATOR) {
     std::unique_ptr<Expr> value = nullptr;
@@ -247,6 +247,20 @@ std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
   }
 
   return left;
+}
+
+std::unique_ptr<Expr> Parser::parseTernaryExpr() {
+  auto condition = parseLogicalExpr();
+
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::QUESTION_MARK) {
+    advance();
+    auto trueExpr = parseExpression();
+    assertToken("SyntaxToken::COLON", "Expected ':' after true expression in ternary operator.");
+    auto falseExpr = parseExpression();
+    return std::make_unique<TernaryExpr>(std::move(condition), std::move(trueExpr), std::move(falseExpr));
+  }
+
+  return condition;
 }
 
 std::unique_ptr<Expr> Parser::parseLogicalExpr() {
