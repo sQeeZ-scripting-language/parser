@@ -17,7 +17,7 @@ public:
   std::vector<Token> tokens;
 
 private:
-  void handleException(const std::exception &e);
+  void handleException(const std::exception& e);
   std::unique_ptr<Program> buildAST();
   std::unique_ptr<Stmt> parseStatement();
   std::vector<std::unique_ptr<Stmt>> parseStatementBlock();
@@ -34,6 +34,7 @@ private:
   std::unique_ptr<Expr> parseEqualityExpr();
   std::unique_ptr<Expr> parseRelationalExpr();
   std::unique_ptr<Expr> parseObjectExpr();
+  std::unique_ptr<Expr> parseArrayExpr();
   std::unique_ptr<Expr> parseAdditiveExpr();
   std::unique_ptr<Expr> parseMultiplicativeExpr();
   std::unique_ptr<Expr> parsePowerExpr();

@@ -29,6 +29,7 @@ enum class NodeType {
   // LITERALS
   Property,
   ObjectLiteral,
+  ArrayLiteral,
   IntegerLiteral,
   DoubleLiteral,
   StringLiteral,
@@ -162,7 +163,7 @@ public:
 };
 
 class WhileStmt : public Stmt {
-public: 
+public:
   std::unique_ptr<Expr> condition;
   std::vector<std::unique_ptr<Stmt>> body;
 
@@ -181,7 +182,7 @@ public:
 };
 
 class DoWhileStmt : public Stmt {
-public: 
+public:
   std::unique_ptr<Expr> condition;
   std::vector<std::unique_ptr<Stmt>> body;
 
@@ -200,14 +201,19 @@ public:
 };
 
 class ForStmt : public Stmt {
-public: 
+public:
   std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> condition;
   std::unique_ptr<Expr> increment;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  ForStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
+  ForStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment,
+          std::vector<std::unique_ptr<Stmt>> body)
+      : Stmt(NodeType::ConditionalStatement),
+        iterator(std::move(iterator)),
+        condition(std::move(condition)),
+        increment(std::move(increment)),
+        body(std::move(body)) {}
 
   std::string toString() const override {
     std::string result = "ForStmt: ";
@@ -233,13 +239,16 @@ public:
 };
 
 class ForInStmt : public Stmt {
-public: 
+public:
   std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> iterable;
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForInStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), iterable(std::move(iterable)), body(std::move(body)) {}
+      : Stmt(NodeType::ConditionalStatement),
+        iterator(std::move(iterator)),
+        iterable(std::move(iterable)),
+        body(std::move(body)) {}
 
   std::string toString() const override {
     std::string result = "ForInStmt: ";
@@ -253,13 +262,16 @@ public:
 };
 
 class ForOfStmt : public Stmt {
-public: 
+public:
   std::unique_ptr<Stmt> iterator;
   std::unique_ptr<Expr> iterable;
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForOfStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), iterator(std::move(iterator)), iterable(std::move(iterable)), body(std::move(body)) {}
+      : Stmt(NodeType::ConditionalStatement),
+        iterator(std::move(iterator)),
+        iterable(std::move(iterable)),
+        body(std::move(body)) {}
 
   std::string toString() const override {
     std::string result = "ForOfStmt: ";
@@ -278,9 +290,7 @@ public:
 
   explicit ReturnStmt(std::unique_ptr<Expr> value) : Stmt(NodeType::ReturnStmt), value(std::move(value)) {}
 
-  std::string toString() const override {
-    return "ReturnStmt: " + (value ? value->toString() : "null");
-  }
+  std::string toString() const override { return "ReturnStmt: " + (value ? value->toString() : "null"); }
 };
 
 class LogStmt : public Stmt {
@@ -323,7 +333,10 @@ public:
   std::string operator_;
 
   CompoundAssignmentExpr(std::unique_ptr<Expr> assignee, std::unique_ptr<Expr> value, const std::string& operator_)
-      : Expr(NodeType::CompoundAssignmentExpr), assignee(std::move(assignee)), value(std::move(value)), operator_(operator_) {}
+      : Expr(NodeType::CompoundAssignmentExpr),
+        assignee(std::move(assignee)),
+        value(std::move(value)),
+        operator_(operator_) {}
 
   std::string toString() const override {
     return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + " " + value->toString();
@@ -331,7 +344,7 @@ public:
 };
 
 class UnaryExpr : public Expr {
- public:
+public:
   Token op;
   std::unique_ptr<Expr> operand;
   bool isPrefix;
@@ -347,8 +360,6 @@ class UnaryExpr : public Expr {
     }
   }
 };
-
-
 
 class BinaryExpr : public Expr {
 public:
@@ -510,6 +521,26 @@ public:
     }
     oss << " }";
     return oss.str();
+  }
+};
+
+class ArrayLiteral : public Expr {
+public:
+  std::vector<std::unique_ptr<Expr>> elements;
+
+  explicit ArrayLiteral(std::vector<std::unique_ptr<Expr>> elems)
+      : Expr(NodeType::ArrayLiteral), elements(std::move(elems)) {}
+
+  std::string toString() const override {
+    std::string result = "[";
+    for (size_t i = 0; i < elements.size(); ++i) {
+      result += elements[i]->toString();
+      if (i < elements.size() - 1) {
+        result += ", ";
+      }
+    }
+    result += "]";
+    return result;
   }
 };
 

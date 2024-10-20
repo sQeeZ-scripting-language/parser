@@ -9,12 +9,11 @@ std::unique_ptr<Program> Parser::parse(bool devMode) {
   return std::move(ast);
 }
 
-void Parser::handleException(const std::exception &e) {
+void Parser::handleException(const std::exception& e) {
   std::string exceptionType = typeid(e).name();
 
   std::cerr << "\033[1;30m\033[41m[sQeeZ]: "
-            << "Exception of type: " << exceptionType
-            << " - Message: " << e.what() << "\033[0m" << std::endl;
+            << "Exception of type: " << exceptionType << " - Message: " << e.what() << "\033[0m" << std::endl;
 
   std::exit(EXIT_FAILURE);
 }
@@ -31,7 +30,7 @@ std::unique_ptr<Program> Parser::buildAST() {
       }
       skipSemicolon();
     }
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     handleException(e);
   }
   return program;
@@ -106,7 +105,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   advance();
   std::string identifier =
       assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.").value;
-  
+
   std::unique_ptr<Expr> value = nullptr;
   if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
     assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
@@ -177,21 +176,21 @@ std::unique_ptr<Stmt> Parser::parseForStatement() {
   std::unique_ptr<Stmt> iterator = parseVarDeclaration();
   // Handle 'for-in' loop
   if (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::IN) {
-      advance();
-      std::unique_ptr<Expr> iterable = parseExpression();
-      assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'in' expression.");
-      assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-in loop.");
-      std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
-      return std::make_unique<ForInStmt>(std::move(iterator), std::move(iterable), std::move(body));
-  } 
+    advance();
+    std::unique_ptr<Expr> iterable = parseExpression();
+    assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'in' expression.");
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-in loop.");
+    std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+    return std::make_unique<ForInStmt>(std::move(iterator), std::move(iterable), std::move(body));
+  }
   // Handle 'for-of' loop
   else if (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::OF) {
-      advance();
-      std::unique_ptr<Expr> iterable = parseExpression();
-      assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'of' expression.");
-      assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-of loop.");
-      std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
-      return std::make_unique<ForOfStmt>(std::move(iterator), std::move(iterable), std::move(body));
+    advance();
+    std::unique_ptr<Expr> iterable = parseExpression();
+    assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after 'of' expression.");
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' after for-of loop.");
+    std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
+    return std::make_unique<ForOfStmt>(std::move(iterator), std::move(iterable), std::move(body));
   }
   // Handle basic for loop
   else {
@@ -277,8 +276,7 @@ std::unique_ptr<Expr> Parser::parseEqualityExpr() {
 std::unique_ptr<Expr> Parser::parseRelationalExpr() {
   auto left = parseObjectExpr();
 
-  while (peek().value == "<" || peek().value == ">" || 
-         peek().value == "<=" || peek().value == ">=") {
+  while (peek().value == "<" || peek().value == ">" || peek().value == "<=" || peek().value == ">=") {
     std::string op = advance().value;
     auto right = parseObjectExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
@@ -289,7 +287,7 @@ std::unique_ptr<Expr> Parser::parseRelationalExpr() {
 
 std::unique_ptr<Expr> Parser::parseObjectExpr() {
   if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACE)) {
-    return parseAdditiveExpr();
+    return parseArrayExpr();
   }
 
   advance();
@@ -322,6 +320,25 @@ std::unique_ptr<Expr> Parser::parseObjectExpr() {
 
   assertToken("SyntaxToken::CLOSE_BRACE", "Object literal missing closing brace.");
   return std::make_unique<ObjectLiteral>(std::move(properties));
+}
+
+std::unique_ptr<Expr> Parser::parseArrayExpr() {
+  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
+    return parseAdditiveExpr();
+  }
+
+  advance();
+  std::vector<std::unique_ptr<Expr>> elements;
+
+  while (!isEOF() && !(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACKET)) {
+    elements.push_back(parseExpression());
+    if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_BRACKET)) {
+      assertToken("SyntaxToken::COMMA", "Expected comma or closing bracket following array element");
+    }
+  }
+
+  assertToken("SyntaxToken::CLOSE_BRACKET", "Array literal missing closing bracket.");
+  return std::make_unique<ArrayLiteral>(std::move(elements));
 }
 
 std::unique_ptr<Expr> Parser::parseAdditiveExpr() {
@@ -367,11 +384,11 @@ std::unique_ptr<Expr> Parser::parseCallMemberExpr() {
     return parseCallExpr(std::move(expression));
   }
 
-  if (peek().tag == Token::TypeTag::OPERATOR &&
-      (peek().type.operatorToken == OperatorToken::INCREMENT || peek().type.operatorToken == OperatorToken::DECREMENT)) {
+  if (peek().tag == Token::TypeTag::OPERATOR && (peek().type.operatorToken == OperatorToken::INCREMENT ||
+                                                 peek().type.operatorToken == OperatorToken::DECREMENT)) {
     Token operatorToken = advance();
     return std::make_unique<UnaryExpr>(operatorToken, std::move(expression), false);
-  }  
+  }
 
   return expression;
 }
@@ -489,7 +506,7 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         return nullptr;
       default:
         break;
-    } 
+    }
   } else if (token.tag == Token::TypeTag::OPERATOR) {
     switch (token.type.operatorToken) {
       case OperatorToken::INCREMENT:
