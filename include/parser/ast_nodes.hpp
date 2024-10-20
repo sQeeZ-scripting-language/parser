@@ -15,6 +15,7 @@ enum class NodeType {
   VarDeclaration,
   FunctionDeclaration,
   ConditionalStatement,
+  ReturnStmt,
   LogStmt,
 
   // EXPRESSIONS
@@ -153,6 +154,17 @@ public:
       result += "  }";
     }
     return result;
+  }
+};
+
+class ReturnStmt : public Stmt {
+public:
+  std::unique_ptr<Expr> value;
+
+  explicit ReturnStmt(std::unique_ptr<Expr> value) : Stmt(NodeType::ReturnStmt), value(std::move(value)) {}
+
+  std::string toString() const override {
+    return "ReturnStmt: " + (value ? value->toString() : "null");
   }
 };
 

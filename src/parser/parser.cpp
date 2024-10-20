@@ -34,6 +34,8 @@ std::unique_ptr<Stmt> Parser::parseStatement() {
         return parseFunctionDeclaration();
       case KeywordToken::IF:
         return parseConditionalStatement();
+      case KeywordToken::RETURN:
+        return parseReturnStatement();
       default:
         return parseExpression();
     }
@@ -73,7 +75,6 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
 
   assertToken("SyntaxToken::OPEN_BRACE", "Expected function body following declaration");
   std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
-  assertToken("SyntaxToken::CLOSE_BRACE", "Closing brace expected inside function declaration");
 
   auto fn = std::make_unique<FunctionDeclaration>(name, std::move(params), std::move(body));
 
@@ -134,6 +135,16 @@ std::unique_ptr<Stmt> Parser::parseConditionalStatement() {
   }
 
   return std::make_unique<ConditionalStatement>(std::move(ifClause), std::move(elifClauses), std::move(elseBody));
+}
+
+std::unique_ptr<Stmt> Parser::parseReturnStatement() {
+  assertToken("KeywordToken::RETURN", "Expected 'return' keyword to start return statement.");
+  std::unique_ptr<Expr> value = nullptr;
+  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON)) {
+    value = parseExpression();
+  }
+  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after return statement.");
+  return std::make_unique<ReturnStmt>(std::move(value));
 }
 
 std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }
