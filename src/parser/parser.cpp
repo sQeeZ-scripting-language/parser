@@ -29,6 +29,7 @@ std::unique_ptr<Program> Parser::buildAST() {
       if (statement != nullptr) {
         program->body.push_back(std::move(statement));
       }
+      skipSemicolon();
     }
   } catch (const std::exception &e) {
     handleException(e);
@@ -478,5 +479,11 @@ Token Parser::assertToken(const std::string& expected, const std::string& errorM
 void Parser::log(const std::unique_ptr<Program>& program, bool devMode) {
   if (devMode) {
     std::cout << program->toString() << std::endl;
+  }
+}
+
+void Parser::skipSemicolon() {
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON) {
+    advance();
   }
 }

@@ -213,7 +213,7 @@ public:
       : Expr(NodeType::CompoundAssignmentExpr), assignee(std::move(assignee)), value(std::move(value)), operator_(operator_) {}
 
   std::string toString() const override {
-    return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + "= " + value->toString();
+    return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + " " + value->toString();
   }
 };
 
