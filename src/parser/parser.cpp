@@ -99,6 +99,16 @@ std::unique_ptr<Stmt> Parser::parseFunctionDeclaration() {
   return fn;
 }
 
+std::unique_ptr<Stmt> Parser::parseReturnStatement() {
+  assertToken("KeywordToken::RETURN", "Expected 'return' keyword to start return statement.");
+  std::unique_ptr<Expr> value = nullptr;
+  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON)) {
+    value = parseExpression();
+  }
+  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after return statement.");
+  return std::make_unique<ReturnStmt>(std::move(value));
+}
+
 std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   bool isConstant = (peek().tag == Token::TypeTag::KEYWORD && peek().type.keywordToken == KeywordToken::CONSTANT);
   advance();
@@ -202,16 +212,6 @@ std::unique_ptr<Stmt> Parser::parseForStatement() {
     std::vector<std::unique_ptr<Stmt>> body = parseStatementBlock();
     return std::make_unique<ForStmt>(std::move(iterator), std::move(condition), std::move(increment), std::move(body));
   }
-}
-
-std::unique_ptr<Stmt> Parser::parseReturnStatement() {
-  assertToken("KeywordToken::RETURN", "Expected 'return' keyword to start return statement.");
-  std::unique_ptr<Expr> value = nullptr;
-  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::SEMICOLON)) {
-    value = parseExpression();
-  }
-  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after return statement.");
-  return std::make_unique<ReturnStmt>(std::move(value));
 }
 
 std::unique_ptr<Stmt> Parser::parseLogStatement() {

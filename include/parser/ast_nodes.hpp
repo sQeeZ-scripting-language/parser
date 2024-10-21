@@ -92,19 +92,19 @@ public:
 
 class FunctionDeclaration : public Stmt {
 public:
-  std::string name;
-  std::vector<std::string> parameters;
+  Token name;
+  std::vector<Token> parameters;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  FunctionDeclaration(const std::string& name, std::vector<std::string> parameters,
+  FunctionDeclaration(const Token& name, std::vector<Token> parameters,
                       std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::FunctionDeclaration), name(name), parameters(std::move(parameters)), body(std::move(body)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "FunctionDeclaration: " << name << "(";
+    oss << "FunctionDeclaration: " << name.value << "(";
     for (size_t i = 0; i < parameters.size(); ++i) {
-      oss << parameters[i];
+      oss << parameters[i].value;
       if (i < parameters.size() - 1) {
         oss << ", ";
       }
@@ -128,16 +128,16 @@ public:
 
 class VarDeclaration : public Stmt {
 public:
-  bool constant;
-  std::string identifier;
+  Token type;
+  Token identifier;
   std::unique_ptr<ASTNode> value;
 
-  VarDeclaration(bool constant, const std::string& identifier, std::unique_ptr<ASTNode> value)
-      : Stmt(NodeType::VarDeclaration), constant(constant), identifier(identifier), value(std::move(value)) {}
+  VarDeclaration(const Token& type , const Token& identifier, std::unique_ptr<ASTNode> value)
+      : Stmt(NodeType::VarDeclaration), type(type), identifier(identifier), value(std::move(value)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "VarDeclaration: " << (constant ? "const " : "let ") << identifier;
+    oss << "VarDeclaration: " << type.value << " " << identifier.value;
     if (value) {
       oss << " = " << value->toString();
     }
@@ -344,16 +344,16 @@ class CompoundAssignmentExpr : public Expr {
 public:
   std::unique_ptr<Expr> assignee;
   std::unique_ptr<Expr> value;
-  std::string operator_;
+  Token operator_;
 
-  CompoundAssignmentExpr(std::unique_ptr<Expr> assignee, std::unique_ptr<Expr> value, const std::string& operator_)
+  CompoundAssignmentExpr(std::unique_ptr<Expr> assignee, std::unique_ptr<Expr> value, const Token& operator_)
       : Expr(NodeType::CompoundAssignmentExpr),
         assignee(std::move(assignee)),
         value(std::move(value)),
         operator_(operator_) {}
 
   std::string toString() const override {
-    return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_ + " " + value->toString();
+    return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_.value + " " + value->toString();
   }
 };
 
@@ -378,30 +378,30 @@ class BinaryExpr : public Expr {
 public:
   std::unique_ptr<Expr> left;
   std::unique_ptr<Expr> right;
-  std::string operator_;
+  Token operator_;
 
-  BinaryExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, const std::string& operator_)
+  BinaryExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, const Token& operator_)
       : Expr(NodeType::BinaryExpr), left(std::move(left)), right(std::move(right)), operator_(operator_) {}
 
   std::string toString() const override {
-    return "BinaryExpr: (" + left->toString() + " " + operator_ + " " + right->toString() + ")";
+    return "BinaryExpr: (" + left->toString() + " " + operator_.value + " " + right->toString() + ")";
   }
 };
 
 class UnaryExpr : public Expr {
 public:
-  Token op;
+  Token operator_;
   std::unique_ptr<Expr> operand;
   bool isPrefix;
 
   UnaryExpr(Token op, std::unique_ptr<Expr> operand, bool isPrefix)
-      : Expr(NodeType::UnaryExpr), op(op), operand(std::move(operand)), isPrefix(isPrefix) {}
+      : Expr(NodeType::UnaryExpr), operator_(operator_), operand(std::move(operand)), isPrefix(isPrefix) {}
 
   std::string toString() const override {
     if (isPrefix) {
-      return op.value + operand->toString();
+      return operator_.value + operand->toString();
     } else {
-      return operand->toString() + op.value;
+      return operand->toString() + operator_.value;
     }
   }
 };
@@ -448,15 +448,15 @@ public:
 // Literals / Primary Expressions
 class Property : public Expr {
 public:
-  std::string key;
+  Token key;
   std::unique_ptr<Expr> value;
 
-  Property(const std::string& key, std::unique_ptr<Expr> value = nullptr)
+  Property(const Token& key, std::unique_ptr<Expr> value = nullptr)
       : Expr(NodeType::Property), key(key), value(std::move(value)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "Property: " << key;
+    oss << "Property: " << key.value;
     if (value) {
       oss << " = " << value->toString();
     }
@@ -507,11 +507,11 @@ public:
 
 class Identifier : public Expr {
 public:
-  std::string symbol;
+  Token identifier;
 
-  explicit Identifier(const std::string& symbol) : Expr(NodeType::Identifier), symbol(symbol) {}
+  explicit Identifier(const std::string& symbol) : Expr(NodeType::Identifier), identifier(identifier) {}
 
-  std::string toString() const override { return "Identifier: " + symbol; }
+  std::string toString() const override { return "Identifier: " + identifier.value; }
 };
 
 class NullLiteral : public Expr {
@@ -579,14 +579,14 @@ public:
 class ShortOperationLiteral : public Expr {
 public:
   Token type;
-  std::string operation;
+  Token operation_;
   std::unique_ptr<Expr> value;
 
-  ShortOperationLiteral(const Token& type, const std::string& operation, std::unique_ptr<Expr> value)
-      : Expr(NodeType::ShortOperationLiteral), type(type), operation(operation), value(std::move(value)) {}
+  ShortOperationLiteral(const Token& type, const Token& operation, std::unique_ptr<Expr> value)
+      : Expr(NodeType::ShortOperationLiteral), type(type), operation_(operation_), value(std::move(value)) {}
 
   std::string toString() const override {
-    return "ShortOperationLiteral: " + type.plainText + "(" + operation + value->toString() + ")";
+    return "ShortOperationLiteral: " + type.plainText + "(" + operation_.value + value->toString() + ")";
   }
 };
 
