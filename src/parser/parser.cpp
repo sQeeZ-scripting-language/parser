@@ -300,6 +300,10 @@ std::unique_ptr<Expr> Parser::parseRelationalExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseObjectExpr() {
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::AT) {
+    return parseShortData();
+  }
+
   if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACE)) {
     return parseArrayExpr();
   }
@@ -380,18 +384,18 @@ std::unique_ptr<Expr> Parser::parseMultiplicativeExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parsePowerExpr() {
-  auto left = parseShortExpr();
+  auto left = parsePipeExpr();
 
   while (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::POTENTIATION) {
     std::string op = advance().value;
-    auto right = parseShortExpr();
+    auto right = parsePipeExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
   }
 
   return left;
 }
 
-std::unique_ptr<Expr> Parser::parseShortExpr() {
+std::unique_ptr<Expr> Parser::parsePipeExpr() {
   auto left = parseCallMemberExpr();
 
   while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
@@ -530,9 +534,6 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
       case SyntaxToken::INLINE_COMMENT:
         parseComment();
         return nullptr;
-      case SyntaxToken::AT:
-        advance();
-        return parseShortData();
       default:
         break;
     }
@@ -544,6 +545,8 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
       default:
         break;
     }
+  } else if (token.tag == Token::TypeTag::SHORT_NOTATION) {
+    return parseShortExpr();
   }
   throw std::logic_error("Unexpected token \"" + token.plainText + "\" found in primary expression.");
 }
@@ -573,13 +576,14 @@ std::unique_ptr<Stmt> Parser::parseLogStatement() {
 }
 
 std::unique_ptr<Expr> Parser::parseShortData() {
+  advance();
   // Short Notation -> Object @ key:value key:value
   if (peek().tag == Token::TypeTag::DATA && peek().type.dataToken == DataToken::IDENTIFIER) {
     std::vector<std::unique_ptr<Property>> properties;
     while(true) {
       std::string key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.").value;
       assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
-      auto value = parseExpression();
+      auto value = parsePrimaryExpr();
       properties.push_back(std::make_unique<Property>(Property{key, std::move(value)}));
       if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
         advance();
@@ -593,7 +597,7 @@ std::unique_ptr<Expr> Parser::parseShortData() {
   else if (peek().tag == Token::TypeTag::DATA) {
     std::vector<std::unique_ptr<Expr>> elements;
     while(true) {
-      elements.push_back(parseExpression());
+      elements.push_back(parsePrimaryExpr());
       if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
         advance();
       } else {
@@ -601,7 +605,30 @@ std::unique_ptr<Expr> Parser::parseShortData() {
       }
     }
     return std::make_unique<ArrayLiteral>(std::move(elements));
+  } else {
+    throw std::invalid_argument("Unexpected short data notation.");
   }
+}
+
+std::unique_ptr<Expr> Parser::parseShortExpr() {
+  Token shortKey = advance();
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after short expression type.");
+  // handle content based on type
+  std::string operation = "";
+  std::unique_ptr<Expr> value;
+  std::unique_ptr<Expr> expression;
+  switch (shortKey.type.shortNotationToken) {
+    case ShortNotationToken::MAP:
+      operation = advance().value; // * / + - %
+      value = parseExpression();
+      expression = std::make_unique<ShortLiteral>(shortKey, operation, std::move(value));
+      break;
+    default:
+      throw std::invalid_argument("Unexpected short expression type: " + shortKey.plainText);
+      break;
+  }
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after short expression content.");
+  return expression;
 }
 
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }

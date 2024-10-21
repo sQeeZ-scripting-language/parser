@@ -37,7 +37,8 @@ enum class NodeType {
   CharLiteral,
   BooleanLiteral,
   HexCodeLiteral,
-  Identifier
+  Identifier,
+  ShortLiteral
 };
 
 // Base class for all AST nodes
@@ -560,6 +561,18 @@ public:
     result += "]";
     return result;
   }
+};
+
+class ShortLiteral : public Expr {
+public:
+  Token type;
+  std::string operation;
+  std::unique_ptr<Expr> value;
+
+  ShortLiteral(const Token& type, const std::string& operation, std::unique_ptr<Expr> value)
+      : Expr(NodeType::ShortLiteral), type(type), operation(operation), value(std::move(value)) {}
+
+  std::string toString() const override { return "ShortLiteral: " + type.plainText + "(" + operation + value->toString() + ")"; }
 };
 
 #endif
