@@ -22,7 +22,6 @@ enum class NodeType {
   ForInStatement,
   ForOfStatement,
   LogStmt,
-
   // EXPRESSIONS
   AssignmentExpr,
   CompoundAssignmentExpr,
@@ -31,7 +30,6 @@ enum class NodeType {
   UnaryExpr,
   CallExpr,
   MemberExpr,
-
   // LITERALS
   Property,
   ObjectLiteral,
@@ -44,7 +42,6 @@ enum class NodeType {
   CharLiteral,
   StringLiteral,
   HexCodeLiteral,
-  
   // Short Notation
   ShortOperationLiteral,
   ShortSingleExpressionLiteral,
@@ -96,8 +93,7 @@ public:
   std::vector<Token> parameters;
   std::vector<std::unique_ptr<Stmt>> body;
 
-  FunctionDeclaration(const Token& name, std::vector<Token> parameters,
-                      std::vector<std::unique_ptr<Stmt>> body)
+  FunctionDeclaration(const Token& name, std::vector<Token> parameters, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::FunctionDeclaration), name(name), parameters(std::move(parameters)), body(std::move(body)) {}
 
   std::string toString() const override {
@@ -132,7 +128,7 @@ public:
   Token identifier;
   std::unique_ptr<ASTNode> value;
 
-  VarDeclaration(const Token& type , const Token& identifier, std::unique_ptr<ASTNode> value)
+  VarDeclaration(const Token& type, const Token& identifier, std::unique_ptr<ASTNode> value)
       : Stmt(NodeType::VarDeclaration), type(type), identifier(identifier), value(std::move(value)) {}
 
   std::string toString() const override {
@@ -394,7 +390,7 @@ public:
   std::unique_ptr<Expr> operand;
   bool isPrefix;
 
-  UnaryExpr(Token op, std::unique_ptr<Expr> operand, bool isPrefix)
+  UnaryExpr(Token operator_, std::unique_ptr<Expr> operand, bool isPrefix)
       : Expr(NodeType::UnaryExpr), operator_(operator_), operand(std::move(operand)), isPrefix(isPrefix) {}
 
   std::string toString() const override {
@@ -509,7 +505,7 @@ class Identifier : public Expr {
 public:
   Token identifier;
 
-  explicit Identifier(const std::string& symbol) : Expr(NodeType::Identifier), identifier(identifier) {}
+  explicit Identifier(const Token& identifier) : Expr(NodeType::Identifier), identifier(identifier) {}
 
   std::string toString() const override { return "Identifier: " + identifier.value; }
 };
@@ -582,7 +578,7 @@ public:
   Token operation_;
   std::unique_ptr<Expr> value;
 
-  ShortOperationLiteral(const Token& type, const Token& operation, std::unique_ptr<Expr> value)
+  ShortOperationLiteral(const Token& type, const Token& operation_, std::unique_ptr<Expr> value)
       : Expr(NodeType::ShortOperationLiteral), type(type), operation_(operation_), value(std::move(value)) {}
 
   std::string toString() const override {

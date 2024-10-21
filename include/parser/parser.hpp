@@ -58,8 +58,8 @@ private:
   Token advance();
   Token assertToken(const std::string& expected, const std::string& errorMessage);
   void log(const std::unique_ptr<Program>& program, bool devMode);
-  auto skipComment();
   void skipSemicolon();
+  void skipComment();
 };
 
 #endif
