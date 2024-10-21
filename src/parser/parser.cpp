@@ -288,9 +288,21 @@ std::unique_ptr<Expr> Parser::parseEqualityExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseRelationalExpr() {
-  auto left = parseObjectExpr();
+  auto left = parsePipeExpr();
 
   while (peek().value == "<" || peek().value == ">" || peek().value == "<=" || peek().value == ">=") {
+    std::string op = advance().value;
+    auto right =  parsePipeExpr();
+    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
+  }
+
+  return left;
+}
+
+std::unique_ptr<Expr> Parser::parsePipeExpr() {
+  auto left = parseObjectExpr();
+
+  while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
     std::string op = advance().value;
     auto right = parseObjectExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
@@ -300,6 +312,10 @@ std::unique_ptr<Expr> Parser::parseRelationalExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseObjectExpr() {
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::AT) {
+    return parseShortData();
+  }
+
   if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACE)) {
     return parseArrayExpr();
   }
@@ -380,23 +396,11 @@ std::unique_ptr<Expr> Parser::parseMultiplicativeExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parsePowerExpr() {
-  auto left = parsePipeExpr();
+  auto left = parseCallMemberExpr();
 
   while (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::POTENTIATION) {
     std::string op = advance().value;
-    auto right = parsePipeExpr();
-    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
-  }
-
-  return left;
-}
-
-std::unique_ptr<Expr> Parser::parsePipeExpr() {
-  auto left = parseShortData();
-
-  while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
-    std::string op = advance().value;
-    auto right = parseShortData();
+    auto right = parseCallMemberExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), op);
   }
 
@@ -404,41 +408,37 @@ std::unique_ptr<Expr> Parser::parsePipeExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseShortData() {
-  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::AT) {
-    advance();
-    // Short Notation -> Object @ key:value key:value
-    if (peek().tag == Token::TypeTag::DATA && peek().type.dataToken == DataToken::IDENTIFIER) {
-      std::vector<std::unique_ptr<Property>> properties;
-      while(true) {
-        std::string key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.").value;
-        assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
-        auto value = parsePrimaryExpr();
-        properties.push_back(std::make_unique<Property>(Property{key, std::move(value)}));
-        if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
-          advance();
-        } else {
-          break;
-        }
-      } 
-      return std::make_unique<ObjectLiteral>(std::move(properties));
-    }
-    // Short Notation -> Array @ value value value
-    else if (peek().tag == Token::TypeTag::DATA) {
-      std::vector<std::unique_ptr<Expr>> elements;
-      while(true) {
-        elements.push_back(parsePrimaryExpr());
-        if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
-          advance();
-        } else {
-          break;
-        }
+  advance();
+  // Short Notation -> Object @ key:value key:value
+  if (peek().tag == Token::TypeTag::DATA && peek().type.dataToken == DataToken::IDENTIFIER) {
+    std::vector<std::unique_ptr<Property>> properties;
+    while(true) {
+      std::string key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.").value;
+      assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
+      auto value = parsePrimaryExpr();
+      properties.push_back(std::make_unique<Property>(Property{key, std::move(value)}));
+      if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
+        advance();
+      } else {
+        break;
       }
-      return std::make_unique<ArrayLiteral>(std::move(elements));
-    } else {
-      throw std::invalid_argument("Unexpected short data notation.");
+    } 
+    return std::make_unique<ObjectLiteral>(std::move(properties));
+  }
+  // Short Notation -> Array @ value value value
+  else if (peek().tag == Token::TypeTag::DATA) {
+    std::vector<std::unique_ptr<Expr>> elements;
+    while(true) {
+      elements.push_back(parsePrimaryExpr());
+      if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
+        advance();
+      } else {
+        break;
+      }
     }
+    return std::make_unique<ArrayLiteral>(std::move(elements));
   } else {
-    return parseCallMemberExpr();
+    throw std::invalid_argument("Unexpected short data notation.");
   }
 }
 
