@@ -12,34 +12,42 @@
 enum class NodeType {
   // STATEMENTS
   Program,
-  VarDeclaration,
   FunctionDeclaration,
-  ConditionalStatement,
   ReturnStmt,
+  VarDeclaration,
+  ConditionalStatement,
+  WhileStatement,
+  DoWhileStatement,
+  ForStatement,
+  ForInStatement,
+  ForOfStatement,
   LogStmt,
 
   // EXPRESSIONS
   AssignmentExpr,
   CompoundAssignmentExpr,
   TernaryExpr,
-  MemberExpr,
-  CallExpr,
-  UnaryExpr,
   BinaryExpr,
+  UnaryExpr,
+  CallExpr,
+  MemberExpr,
 
   // LITERALS
   Property,
   ObjectLiteral,
   ArrayLiteral,
+  Identifier,
+  NullLiteral,
   IntegerLiteral,
   DoubleLiteral,
-  StringLiteral,
-  CharLiteral,
   BooleanLiteral,
+  CharLiteral,
+  StringLiteral,
   HexCodeLiteral,
-  Identifier,
+  
+  // Short Notation
   ShortOperationLiteral,
-  ShortExpressionLiteral,
+  ShortSingleExpressionLiteral,
   ShortDoubleExpressionLiteral
 };
 
@@ -63,6 +71,7 @@ public:
   explicit Expr(const NodeType& kind) : Stmt(kind) {}
 };
 
+// Statements
 class Program : public Stmt {
 public:
   std::vector<std::unique_ptr<Stmt>> body;
@@ -76,25 +85,6 @@ public:
       if (stmt) {
         oss << "  " << stmt->toString() << "\n";
       }
-    }
-    return oss.str();
-  }
-};
-
-class VarDeclaration : public Stmt {
-public:
-  bool constant;
-  std::string identifier;
-  std::unique_ptr<ASTNode> value;
-
-  VarDeclaration(bool constant, const std::string& identifier, std::unique_ptr<ASTNode> value)
-      : Stmt(NodeType::VarDeclaration), constant(constant), identifier(identifier), value(std::move(value)) {}
-
-  std::string toString() const override {
-    std::ostringstream oss;
-    oss << "VarDeclaration: " << (constant ? "const " : "let ") << identifier;
-    if (value) {
-      oss << " = " << value->toString();
     }
     return oss.str();
   }
@@ -122,6 +112,34 @@ public:
     oss << ")\n";
     for (const auto& stmt : body) {
       oss << "  " << stmt->toString() << "\n";
+    }
+    return oss.str();
+  }
+};
+
+class ReturnStmt : public Stmt {
+public:
+  std::unique_ptr<Expr> value;
+
+  explicit ReturnStmt(std::unique_ptr<Expr> value) : Stmt(NodeType::ReturnStmt), value(std::move(value)) {}
+
+  std::string toString() const override { return "ReturnStmt: " + (value ? value->toString() : "null"); }
+};
+
+class VarDeclaration : public Stmt {
+public:
+  bool constant;
+  std::string identifier;
+  std::unique_ptr<ASTNode> value;
+
+  VarDeclaration(bool constant, const std::string& identifier, std::unique_ptr<ASTNode> value)
+      : Stmt(NodeType::VarDeclaration), constant(constant), identifier(identifier), value(std::move(value)) {}
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "VarDeclaration: " << (constant ? "const " : "let ") << identifier;
+    if (value) {
+      oss << " = " << value->toString();
     }
     return oss.str();
   }
@@ -172,10 +190,10 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   WhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), condition(std::move(condition)), body(std::move(body)) {}
+      : Stmt(NodeType::WhileStatement), condition(std::move(condition)), body(std::move(body)) {}
 
   std::string toString() const override {
-    std::string result = "WhileStmt: ";
+    std::string result = "WhileStatement: ";
     result += "while (" + condition->toString() + ") {\n";
     for (const auto& stmt : body) {
       result += "    " + stmt->toString() + "\n";
@@ -191,7 +209,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   DoWhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement), condition(std::move(condition)), body(std::move(body)) {}
+      : Stmt(NodeType::DoWhileStatement), condition(std::move(condition)), body(std::move(body)) {}
 
   std::string toString() const override {
     std::string result = "DoWhileStmt: ";
@@ -213,7 +231,7 @@ public:
 
   ForStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment,
           std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement),
+      : Stmt(NodeType::ForStatement),
         iterator(std::move(iterator)),
         condition(std::move(condition)),
         increment(std::move(increment)),
@@ -249,7 +267,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForInStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement),
+      : Stmt(NodeType::ForInStatement),
         iterator(std::move(iterator)),
         iterable(std::move(iterable)),
         body(std::move(body)) {}
@@ -272,7 +290,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForOfStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ConditionalStatement),
+      : Stmt(NodeType::ForOfStatement),
         iterator(std::move(iterator)),
         iterable(std::move(iterable)),
         body(std::move(body)) {}
@@ -286,15 +304,6 @@ public:
     result += "  }";
     return result;
   }
-};
-
-class ReturnStmt : public Stmt {
-public:
-  std::unique_ptr<Expr> value;
-
-  explicit ReturnStmt(std::unique_ptr<Expr> value) : Stmt(NodeType::ReturnStmt), value(std::move(value)) {}
-
-  std::string toString() const override { return "ReturnStmt: " + (value ? value->toString() : "null"); }
 };
 
 class LogStmt : public Stmt {
@@ -317,6 +326,7 @@ public:
   }
 };
 
+// Expressions
 class AssignmentExpr : public Expr {
 public:
   std::unique_ptr<Expr> assignee;
@@ -364,6 +374,20 @@ public:
   }
 };
 
+class BinaryExpr : public Expr {
+public:
+  std::unique_ptr<Expr> left;
+  std::unique_ptr<Expr> right;
+  std::string operator_;
+
+  BinaryExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, const std::string& operator_)
+      : Expr(NodeType::BinaryExpr), left(std::move(left)), right(std::move(right)), operator_(operator_) {}
+
+  std::string toString() const override {
+    return "BinaryExpr: (" + left->toString() + " " + operator_ + " " + right->toString() + ")";
+  }
+};
+
 class UnaryExpr : public Expr {
 public:
   Token op;
@@ -379,20 +403,6 @@ public:
     } else {
       return operand->toString() + op.value;
     }
-  }
-};
-
-class BinaryExpr : public Expr {
-public:
-  std::unique_ptr<Expr> left;
-  std::unique_ptr<Expr> right;
-  std::string operator_;
-
-  BinaryExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, const std::string& operator_)
-      : Expr(NodeType::BinaryExpr), left(std::move(left)), right(std::move(right)), operator_(operator_) {}
-
-  std::string toString() const override {
-    return "BinaryExpr: (" + left->toString() + " " + operator_ + " " + right->toString() + ")";
   }
 };
 
@@ -435,77 +445,7 @@ public:
   }
 };
 
-// Literal / Primary Expressions
-class Identifier : public Expr {
-public:
-  std::string symbol;
-
-  explicit Identifier(const std::string& symbol) : Expr(NodeType::Identifier), symbol(symbol) {}
-
-  std::string toString() const override { return "Identifier: " + symbol; }
-};
-
-class IntegerLiteral : public Expr {
-public:
-  int value;
-
-  explicit IntegerLiteral(int value) : Expr(NodeType::IntegerLiteral), value(value) {}
-
-  std::string toString() const override { return "IntegerLiteral: " + std::to_string(value); }
-};
-
-class DoubleLiteral : public Expr {
-public:
-  double value;
-
-  explicit DoubleLiteral(double value) : Expr(NodeType::DoubleLiteral), value(value) {}
-
-  std::string toString() const override { return "DoubleLiteral: " + std::to_string(value); }
-};
-
-class StringLiteral : public Expr {
-public:
-  std::string value;
-
-  explicit StringLiteral(std::string value) : Expr(NodeType::StringLiteral), value(std::move(value)) {}
-
-  std::string toString() const override { return "StringLiteral: \"" + value + "\""; }
-};
-
-class CharLiteral : public Expr {
-public:
-  char value;
-
-  explicit CharLiteral(char value) : Expr(NodeType::CharLiteral), value(value) {}
-
-  std::string toString() const override { return "CharLiteral: '" + std::string(1, value) + "'"; }
-};
-
-class BooleanLiteral : public Expr {
-public:
-  bool value;
-
-  explicit BooleanLiteral(bool value) : Expr(NodeType::BooleanLiteral), value(value) {}
-
-  std::string toString() const override { return "BooleanLiteral: " + std::to_string(value); }
-};
-
-class NullLiteral : public Expr {
-public:
-  explicit NullLiteral() : Expr(NodeType::BooleanLiteral) {}
-
-  std::string toString() const override { return "NullLiteral"; }
-};
-
-class HexCodeLiteral : public Expr {
-public:
-  std::string value;
-
-  explicit HexCodeLiteral(std::string value) : Expr(NodeType::HexCodeLiteral), value(std::move(value)) {}
-
-  std::string toString() const override { return "HexCodeLiteral: " + value; }
-};
-
+// Literals / Primary Expressions
 class Property : public Expr {
 public:
   std::string key;
@@ -565,6 +505,77 @@ public:
   }
 };
 
+class Identifier : public Expr {
+public:
+  std::string symbol;
+
+  explicit Identifier(const std::string& symbol) : Expr(NodeType::Identifier), symbol(symbol) {}
+
+  std::string toString() const override { return "Identifier: " + symbol; }
+};
+
+class NullLiteral : public Expr {
+public:
+  explicit NullLiteral() : Expr(NodeType::NullLiteral) {}
+
+  std::string toString() const override { return "NullLiteral"; }
+};
+
+class IntegerLiteral : public Expr {
+public:
+  int value;
+
+  explicit IntegerLiteral(int value) : Expr(NodeType::IntegerLiteral), value(value) {}
+
+  std::string toString() const override { return "IntegerLiteral: " + std::to_string(value); }
+};
+
+class DoubleLiteral : public Expr {
+public:
+  double value;
+
+  explicit DoubleLiteral(double value) : Expr(NodeType::DoubleLiteral), value(value) {}
+
+  std::string toString() const override { return "DoubleLiteral: " + std::to_string(value); }
+};
+
+class BooleanLiteral : public Expr {
+public:
+  bool value;
+
+  explicit BooleanLiteral(bool value) : Expr(NodeType::BooleanLiteral), value(value) {}
+
+  std::string toString() const override { return "BooleanLiteral: " + std::to_string(value); }
+};
+
+class CharLiteral : public Expr {
+public:
+  char value;
+
+  explicit CharLiteral(char value) : Expr(NodeType::CharLiteral), value(value) {}
+
+  std::string toString() const override { return "CharLiteral: '" + std::string(1, value) + "'"; }
+};
+
+class StringLiteral : public Expr {
+public:
+  std::string value;
+
+  explicit StringLiteral(std::string value) : Expr(NodeType::StringLiteral), value(std::move(value)) {}
+
+  std::string toString() const override { return "StringLiteral: \"" + value + "\""; }
+};
+
+class HexCodeLiteral : public Expr {
+public:
+  std::string value;
+
+  explicit HexCodeLiteral(std::string value) : Expr(NodeType::HexCodeLiteral), value(std::move(value)) {}
+
+  std::string toString() const override { return "HexCodeLiteral: " + value; }
+};
+
+// Short Notation
 class ShortOperationLiteral : public Expr {
 public:
   Token type;
@@ -574,18 +585,22 @@ public:
   ShortOperationLiteral(const Token& type, const std::string& operation, std::unique_ptr<Expr> value)
       : Expr(NodeType::ShortOperationLiteral), type(type), operation(operation), value(std::move(value)) {}
 
-  std::string toString() const override { return "ShortOperationLiteral: " + type.plainText + "(" + operation + value->toString() + ")"; }
+  std::string toString() const override {
+    return "ShortOperationLiteral: " + type.plainText + "(" + operation + value->toString() + ")";
+  }
 };
 
-class ShortExpressionLiteral : public Expr {
+class ShortSingleExpressionLiteral : public Expr {
 public:
   Token type;
   std::unique_ptr<Expr> value;
 
-  ShortExpressionLiteral(const Token& type, std::unique_ptr<Expr> value)
-      : Expr(NodeType::ShortExpressionLiteral), type(type), value(std::move(value)) {}
+  ShortSingleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value)
+      : Expr(NodeType::ShortSingleExpressionLiteral), type(type), value(std::move(value)) {}
 
-  std::string toString() const override { return "ShortExpressionLiteral: " + type.plainText + "(" + value->toString() + ")"; }
+  std::string toString() const override {
+    return "ShortSingleExpressionLiteral: " + type.plainText + "(" + value->toString() + ")";
+  }
 };
 
 class ShortDoubleExpressionLiteral : public Expr {
@@ -595,9 +610,15 @@ public:
   std::unique_ptr<Expr> value2;
 
   ShortDoubleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value1, std::unique_ptr<Expr> value2)
-      : Expr(NodeType::ShortDoubleExpressionLiteral), type(type), value1(std::move(value1)), value2(std::move(value2)) {}
+      : Expr(NodeType::ShortDoubleExpressionLiteral),
+        type(type),
+        value1(std::move(value1)),
+        value2(std::move(value2)) {}
 
-  std::string toString() const override { return "ShortDoubleExpressionLiteral: " + type.plainText + "(" + value1->toString() + ", " + value2->toString() + ")"; }
+  std::string toString() const override {
+    return "ShortDoubleExpressionLiteral: " + type.plainText + "(" + value1->toString() + ", " + value2->toString() +
+           ")";
+  }
 };
 
 #endif
