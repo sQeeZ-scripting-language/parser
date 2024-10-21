@@ -616,12 +616,40 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
   // handle content based on type
   std::string operation = "";
   std::unique_ptr<Expr> value;
+  std::unique_ptr<Expr> value2;
   std::unique_ptr<Expr> expression;
   switch (shortKey.type.shortNotationToken) {
     case ShortNotationToken::MAP:
-      operation = advance().value; // * / + - %
+    case ShortNotationToken::REDUCE:
+      operation = advance().value;
+      if (!(operation == "+" || operation == "-" || operation == "*" || operation == "/" || operation == "%")) {
+        throw std::invalid_argument("Unexpected operation found in short expression " + shortKey.plainText + ": " + operation);
+      }
       value = parseExpression();
-      expression = std::make_unique<ShortLiteral>(shortKey, operation, std::move(value));
+      expression = std::make_unique<ShortOperationLiteral>(shortKey, operation, std::move(value));
+      break;
+    case ShortNotationToken::FILTER:
+      operation = advance().value;
+      if (!(operation == "==" || operation == "!=" || operation == "<" || operation == ">" || operation == "<=" || operation == ">=")) {
+        throw std::invalid_argument("Unexpected operation found in short expression " + shortKey.plainText + ": " + operation);
+      }
+      value = parseExpression();
+      expression = std::make_unique<ShortOperationLiteral>(shortKey, operation, std::move(value));
+      break;
+    case ShortNotationToken::CONCAT:
+    case ShortNotationToken::ZIP:
+    case ShortNotationToken::JOIN:
+    case ShortNotationToken::FIND:
+    case ShortNotationToken::COUNT:
+      value = parseExpression();
+      assertToken("SyntaxToken::COMMA", "Expected ',' between values in short expression.");
+      value2 = parseExpression();
+      expression = std::make_unique<ShortDoubleExpressionLiteral>(shortKey, std::move(value), std::move(value2));
+      break;
+    case ShortNotationToken::SORT:
+    case ShortNotationToken::REVERSE:
+      value = parseExpression();
+      expression = std::make_unique<ShortExpressionLiteral>(shortKey, std::move(value));
       break;
     default:
       throw std::invalid_argument("Unexpected short expression type: " + shortKey.plainText);

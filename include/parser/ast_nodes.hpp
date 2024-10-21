@@ -38,7 +38,9 @@ enum class NodeType {
   BooleanLiteral,
   HexCodeLiteral,
   Identifier,
-  ShortLiteral
+  ShortOperationLiteral,
+  ShortExpressionLiteral,
+  ShortDoubleExpressionLiteral
 };
 
 // Base class for all AST nodes
@@ -563,16 +565,39 @@ public:
   }
 };
 
-class ShortLiteral : public Expr {
+class ShortOperationLiteral : public Expr {
 public:
   Token type;
   std::string operation;
   std::unique_ptr<Expr> value;
 
-  ShortLiteral(const Token& type, const std::string& operation, std::unique_ptr<Expr> value)
-      : Expr(NodeType::ShortLiteral), type(type), operation(operation), value(std::move(value)) {}
+  ShortOperationLiteral(const Token& type, const std::string& operation, std::unique_ptr<Expr> value)
+      : Expr(NodeType::ShortOperationLiteral), type(type), operation(operation), value(std::move(value)) {}
 
-  std::string toString() const override { return "ShortLiteral: " + type.plainText + "(" + operation + value->toString() + ")"; }
+  std::string toString() const override { return "ShortOperationLiteral: " + type.plainText + "(" + operation + value->toString() + ")"; }
+};
+
+class ShortExpressionLiteral : public Expr {
+public:
+  Token type;
+  std::unique_ptr<Expr> value;
+
+  ShortExpressionLiteral(const Token& type, std::unique_ptr<Expr> value)
+      : Expr(NodeType::ShortExpressionLiteral), type(type), value(std::move(value)) {}
+
+  std::string toString() const override { return "ShortExpressionLiteral: " + type.plainText + "(" + value->toString() + ")"; }
+};
+
+class ShortDoubleExpressionLiteral : public Expr {
+public:
+  Token type;
+  std::unique_ptr<Expr> value1;
+  std::unique_ptr<Expr> value2;
+
+  ShortDoubleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value1, std::unique_ptr<Expr> value2)
+      : Expr(NodeType::ShortDoubleExpressionLiteral), type(type), value1(std::move(value1)), value2(std::move(value2)) {}
+
+  std::string toString() const override { return "ShortDoubleExpressionLiteral: " + type.plainText + "(" + value1->toString() + ", " + value2->toString() + ")"; }
 };
 
 #endif
