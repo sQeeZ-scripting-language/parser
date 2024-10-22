@@ -94,9 +94,8 @@ jobs:
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
 
@@ -134,9 +133,8 @@ jobs:
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
 
@@ -173,11 +171,10 @@ jobs:
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
-        mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
+        mv "$REPO_DIR/"*/sQeeZ-Lexer-Lib.lib "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
@@ -187,21 +184,11 @@ jobs:
         echo "Latest files have been downloaded and extracted to $REPO_DIR."
 
     - name: Build
-      if: matrix.os != 'windows-latest'
       shell: bash
       run: |
         mkdir build
         cd build
         cmake ..
-        cmake --build .
-
-    - name: Build (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: cmd
-      run: |
-        mkdir build
-        cd build
-        cmake -G "MinGW Makefiles" ..
         cmake --build .
 
     - name: Run tests
