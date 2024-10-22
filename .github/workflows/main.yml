@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest,macos-latest]
+        os: [ubuntu-latest,macos-latest,windows-latest]
 
     steps:
     - name: Checkout repository
@@ -246,6 +246,12 @@ jobs:
           name: build-output-macos-latest
           path: ./build-output-macos
 
+      - name: Download build artifacts (Windows)
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output-windows-latest
+          path: ./build-output-windows
+
       - name: Get the latest tag or fallback to 0.0.1
         id: get_version
         run: |
@@ -278,6 +284,7 @@ jobs:
           cp -r include/parser/* parser/
           zip -r release/sQeeZ-Parser-linux-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-ubuntu parser
           zip -r release/sQeeZ-Parser-macos-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-macos parser
+          zip -r release/sQeeZ-Parser-windows-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-windows parser
           
       - name: Create or Update Tag
         run: |
@@ -293,3 +300,4 @@ jobs:
           artifacts: |
             release/sQeeZ-Parser-linux-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip,
             release/sQeeZ-Parser-macos-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip,
+            release/sQeeZ-Parser-windows-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip
