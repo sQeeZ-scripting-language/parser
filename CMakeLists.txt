@@ -12,16 +12,18 @@ project(sQeeZ-Parser)
 
 # OS specific configurations
 if(MSVC)
-  message(FATAL_ERROR "MSVC is not supported")
-elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
   add_definitions(-D_SQEEZ_WIN)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 elseif(APPLE)
   add_definitions(-D_SQEEZ_MAC)
   set(CMAKE_OSX_ARCHITECTURES "arm64")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch arm64")
-else()
+elseif(UNIX)
   add_definitions(-D_SQEEZ_LINUX)
+else()
+  message(FATAL_ERROR "Unsupported Operating System")
 endif()
 
 # Print the compiler information
@@ -60,11 +62,20 @@ file(GLOB_RECURSE HEADERS
 )
 
 # Include the Lexer
-set(SQEEZ_LEXER_LIB_PATH ${CMAKE_SOURCE_DIR}/lexer-lib/libsQeeZ-Lexer-Lib.a)
+if(MSVC)
+  set(SQEEZ_LEXER_LIB_PATH ${CMAKE_SOURCE_DIR}/lexer-lib/sQeeZ-Lexer-Lib.lib)
+  add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
+  set_target_properties(sQeeZ-Lexer-Lib PROPERTIES
+    IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH}
+    IMPORTED_IMPLIB ${SQEEZ_LEXER_LIB_PATH}
+  )
+else()
+  set(SQEEZ_LEXER_LIB_PATH ${CMAKE_SOURCE_DIR}/lexer-lib/libsQeeZ-Lexer-Lib.a)
+  add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
+  set_target_properties(sQeeZ-Lexer-Lib PROPERTIES IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH})
+endif()
 set(SQEEZ_LEXER_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/lexer)
 include_directories(${SQEEZ_LEXER_INCLUDE_DIR})
-add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
-set_target_properties(sQeeZ-Lexer-Lib PROPERTIES IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH})
 
 # Create the Library
 add_library(
