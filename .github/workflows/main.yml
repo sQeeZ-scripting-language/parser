@@ -202,7 +202,6 @@ jobs:
         mkdir -p temp-artifacts
         cp build/libsQeeZ-Parser-Lib.a temp-artifacts/
         cp build/sQeeZ-Parser-Exe temp-artifacts/
-        cp build/Release/sQeeZ-Parser-Node.node temp-artifacts/
 
     - name: Move build artifacts to a temporary directory (Windows)
       if: matrix.os == 'windows-latest'
