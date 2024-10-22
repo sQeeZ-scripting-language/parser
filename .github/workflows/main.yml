@@ -196,20 +196,32 @@ jobs:
         cd build
         ctest
 
+    - name: Move build artifacts to a temporary directory
+      if: matrix.os != 'windows-latest'
+      run: |
+        mkdir -p temp-artifacts
+        cp build/libsQeeZ-Parser-Lib.a temp-artifacts/
+        cp build/sQeeZ-Parser-Exe temp-artifacts/
+        cp build/Release/sQeeZ-Parser-Node.node temp-artifacts/
+
+    - name: Move build artifacts to a temporary directory (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        New-Item -Path temp-artifacts -ItemType Directory -Force
+        if (Test-Path build/Debug/sQeeZ-Parser-Lib.lib) {
+          Copy-Item build/Debug/sQeeZ-Parser-Lib.lib -Destination temp-artifacts/
+        }
+        if (Test-Path build/Debug/sQeeZ-Parser-Exe.exe) {
+          Copy-Item build/Debug/sQeeZ-Parser-Exe.exe -Destination temp-artifacts/
+        }
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-output-${{ matrix.os }} 
+        name: build-output-${{ matrix.os }}
         if-no-files-found: error
-        path: |
-          build/*.so
-          build/*.dll
-          build/*.lib
-          build/*.a
-          build/*.dylib
-          build/Release/*.node
-          build/sQeeZ-Parser-Exe
-          build/sQeeZ-Parser-Exe.exe
+        path: temp-artifacts/*
 
   release:
     if: github.event_name == 'push' || github.event_name == 'release'
