@@ -62,4 +62,4 @@ private:
   void skipComment();
 };
 
-#endif
+#endif  // PARSER_HPP

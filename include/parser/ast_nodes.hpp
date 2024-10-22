@@ -617,4 +617,4 @@ public:
   }
 };
 
-#endif
+#endif  // AST_NODES_HPP

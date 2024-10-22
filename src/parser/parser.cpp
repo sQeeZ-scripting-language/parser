@@ -111,7 +111,7 @@ std::unique_ptr<Stmt> Parser::parseReturnStatement() {
 }
 
 std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
-  Token type = advance(); // var | const
+  Token type = advance();  // var | const
   Token identifier = assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.");
 
   std::unique_ptr<Expr> value = nullptr;
@@ -214,7 +214,7 @@ std::unique_ptr<Stmt> Parser::parseForStatement() {
 }
 
 std::unique_ptr<Stmt> Parser::parseLogStatement() {
-  Token logType = advance(); // log | logc | warn | error
+  Token logType = advance();  // log | logc | warn | error
   assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after log function call.");
 
   auto messageExpr = parseExpression();
@@ -251,7 +251,7 @@ std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
       case OperatorToken::MULTIPLICATION_ASSIGNMENT:
       case OperatorToken::DIVISION_ASSIGNMENT:
       case OperatorToken::MODULUS_ASSIGNMENT:
-        operator_ = advance(); // + | - | * | / | %
+        operator_ = advance();  // + | - | * | / | %
         value = parseAssignmentExpr();
         expression = std::make_unique<CompoundAssignmentExpr>(std::move(left), std::move(value), operator_);
         assertToken("SyntaxToken::SEMICOLON", "Expected ';' after assignment expression.");
@@ -280,8 +280,9 @@ std::unique_ptr<Expr> Parser::parseTernaryExpr() {
 
 std::unique_ptr<Expr> Parser::parseLogicalExpr() {
   auto left = parseEqualityExpr();
-  while(peek().tag == Token::TypeTag::LOGICAL && (peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) {
-    Token operator_ = advance(); // && | ||
+  while (peek().tag == Token::TypeTag::LOGICAL &&
+         (peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) {
+    Token operator_ = advance();  // && | ||
     auto right = parseEqualityExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
@@ -292,8 +293,9 @@ std::unique_ptr<Expr> Parser::parseLogicalExpr() {
 std::unique_ptr<Expr> Parser::parseEqualityExpr() {
   auto left = parseRelationalExpr();
 
-  while(peek().tag == Token::TypeTag::LOGICAL && (peek().type.logicalToken == LogicalToken::EQUAL || peek().type.logicalToken == LogicalToken::NOT_EQUAL)) {
-    Token operator_ = advance(); // == | !=
+  while (peek().tag == Token::TypeTag::LOGICAL &&
+         (peek().type.logicalToken == LogicalToken::EQUAL || peek().type.logicalToken == LogicalToken::NOT_EQUAL)) {
+    Token operator_ = advance();  // == | !=
     auto right = parseRelationalExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
@@ -304,11 +306,11 @@ std::unique_ptr<Expr> Parser::parseEqualityExpr() {
 std::unique_ptr<Expr> Parser::parseRelationalExpr() {
   auto left = parsePipeExpr();
 
-  while (peek().tag == Token::TypeTag::LOGICAL && (peek().type.logicalToken == LogicalToken::LESS ||
-                                                   peek().type.logicalToken == LogicalToken::GREATER ||
-                                                   peek().type.logicalToken == LogicalToken::LESS_EQUAL ||
-                                                   peek().type.logicalToken == LogicalToken::GREATER_EQUAL)) {
-    Token operator_ = advance(); // < | > | <= | >=
+  while (peek().tag == Token::TypeTag::LOGICAL &&
+         (peek().type.logicalToken == LogicalToken::LESS || peek().type.logicalToken == LogicalToken::GREATER ||
+          peek().type.logicalToken == LogicalToken::LESS_EQUAL ||
+          peek().type.logicalToken == LogicalToken::GREATER_EQUAL)) {
+    Token operator_ = advance();  // < | > | <= | >=
     auto right = parsePipeExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
@@ -428,7 +430,7 @@ std::unique_ptr<Expr> Parser::parseAdditiveExpr() {
 
   while (peek().tag == Token::TypeTag::OPERATOR && (peek().type.operatorToken == OperatorToken::ADDITION ||
                                                     peek().type.operatorToken == OperatorToken::SUBTRACTION)) {
-    Token operator_ = advance(); // + | -
+    Token operator_ = advance();  // + | -
     auto right = parseMultiplicativeExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
@@ -442,7 +444,7 @@ std::unique_ptr<Expr> Parser::parseMultiplicativeExpr() {
   while (peek().tag == Token::TypeTag::OPERATOR && (peek().type.operatorToken == OperatorToken::MULTIPLICATION ||
                                                     peek().type.operatorToken == OperatorToken::DIVISION ||
                                                     peek().type.operatorToken == OperatorToken::MODULUS)) {
-    Token operator_ = advance(); // * | / | %
+    Token operator_ = advance();  // * | / | %
     auto right = parsePowerExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
@@ -471,7 +473,7 @@ std::unique_ptr<Expr> Parser::parseCallMemberExpr() {
 
   if (peek().tag == Token::TypeTag::OPERATOR && (peek().type.operatorToken == OperatorToken::INCREMENT ||
                                                  peek().type.operatorToken == OperatorToken::DECREMENT)) {
-    Token operatorToken = advance(); // ++ | --
+    Token operatorToken = advance();  // ++ | --
     return std::make_unique<UnaryExpr>(operatorToken, std::move(expression), false);
   }
 
@@ -519,7 +521,7 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
 
   while ((peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) ||
          (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
-    Token operatorToken = advance(); // . | [
+    Token operatorToken = advance();  // . | [
     std::unique_ptr<Expr> property;
     bool computed;
 
@@ -605,7 +607,7 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
     switch (token.type.operatorToken) {
       case OperatorToken::INCREMENT:
       case OperatorToken::DECREMENT:
-        token = advance(); // ++ | --
+        token = advance();  // ++ | --
         return std::make_unique<UnaryExpr>(token, parsePrimaryExpr(), true);
       default:
         break;
@@ -617,7 +619,7 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseShortExpr() {
-  Token shortKey = advance(); // MAP | REDUCE | FILTER | CONCAT | ZIP | JOIN | FIND | COUNT | SORT | REVERSE
+  Token shortKey = advance();  // MAP | REDUCE | FILTER | CONCAT | ZIP | JOIN | FIND | COUNT | SORT | REVERSE
   assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after short expression type.");
   Token operation_ = peek();
   std::unique_ptr<Expr> value;
@@ -626,7 +628,7 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
   switch (shortKey.type.shortNotationToken) {
     case ShortNotationToken::MAP:
     case ShortNotationToken::REDUCE:
-      operation_ = advance(); // + | - | * | / | %
+      operation_ = advance();  // + | - | * | / | %
       if (!(operation_.tag == Token::TypeTag::OPERATOR &&
             (operation_.type.operatorToken == OperatorToken::ADDITION ||
              operation_.type.operatorToken == OperatorToken::SUBTRACTION ||
@@ -640,7 +642,7 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
       expression = std::make_unique<ShortOperationLiteral>(shortKey, operation_, std::move(value));
       break;
     case ShortNotationToken::FILTER:
-      operation_ = advance(); // == | != | < | > | <= | >=
+      operation_ = advance();  // == | != | < | > | <= | >=
       if (!(operation_.tag == Token::TypeTag::LOGICAL) &&
           (operation_.type.logicalToken == LogicalToken::EQUAL ||
            operation_.type.logicalToken == LogicalToken::NOT_EQUAL ||
