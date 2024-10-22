@@ -14,7 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest,macos-latest]
+        os: [ubuntu-latest,macos-latest,windows-latest]
 
     steps:
     - name: Checkout repository
@@ -34,7 +34,6 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-        choco install mingw -y
 
     - name: Check code style
       shell: bash
@@ -94,9 +93,8 @@ jobs:
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
 
@@ -134,9 +132,8 @@ jobs:
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
 
@@ -173,11 +170,10 @@ jobs:
         curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
-        mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
+        mv "$REPO_DIR/"*/sQeeZ-Lexer-Lib.lib "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
 
-        rm -rf "$REPO_DIR/"*/Release/sQeeZ-Lexer-Node.node
-        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe
+        rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Node.node
         rm -rf "$REPO_DIR/"*/sQeeZ-Lexer-Exe.exe
         rm -rf "$INCLUDE_DIR/node"
         rm -rf "$TEMP_DIR"
@@ -187,21 +183,11 @@ jobs:
         echo "Latest files have been downloaded and extracted to $REPO_DIR."
 
     - name: Build
-      if: matrix.os != 'windows-latest'
       shell: bash
       run: |
         mkdir build
         cd build
         cmake ..
-        cmake --build .
-
-    - name: Build (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: cmd
-      run: |
-        mkdir build
-        cd build
-        cmake -G "MinGW Makefiles" ..
         cmake --build .
 
     - name: Run tests
@@ -210,20 +196,31 @@ jobs:
         cd build
         ctest
 
+    - name: Move build artifacts to a temporary directory
+      if: matrix.os != 'windows-latest'
+      run: |
+        mkdir -p temp-artifacts
+        cp build/libsQeeZ-Parser-Lib.a temp-artifacts/
+        cp build/sQeeZ-Parser-Exe temp-artifacts/
+
+    - name: Move build artifacts to a temporary directory (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        New-Item -Path temp-artifacts -ItemType Directory -Force
+        if (Test-Path build/Debug/sQeeZ-Parser-Lib.lib) {
+          Copy-Item build/Debug/sQeeZ-Parser-Lib.lib -Destination temp-artifacts/
+        }
+        if (Test-Path build/Debug/sQeeZ-Parser-Exe.exe) {
+          Copy-Item build/Debug/sQeeZ-Parser-Exe.exe -Destination temp-artifacts/
+        }
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-output-${{ matrix.os }} 
+        name: build-output-${{ matrix.os }}
         if-no-files-found: error
-        path: |
-          build/*.so
-          build/*.dll
-          build/*.lib
-          build/*.a
-          build/*.dylib
-          build/Release/*.node
-          build/sQeeZ-Parser-Exe
-          build/sQeeZ-Parser-Exe.exe
+        path: temp-artifacts/*
 
   release:
     if: github.event_name == 'push' || github.event_name == 'release'
@@ -245,6 +242,12 @@ jobs:
         with:
           name: build-output-macos-latest
           path: ./build-output-macos
+
+      - name: Download build artifacts (Windows)
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output-windows-latest
+          path: ./build-output-windows
 
       - name: Get the latest tag or fallback to 0.0.1
         id: get_version
@@ -278,6 +281,7 @@ jobs:
           cp -r include/parser/* parser/
           zip -r release/sQeeZ-Parser-linux-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-ubuntu parser
           zip -r release/sQeeZ-Parser-macos-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-macos parser
+          zip -r release/sQeeZ-Parser-windows-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip ./build-output-windows parser
           
       - name: Create or Update Tag
         run: |
@@ -293,3 +297,4 @@ jobs:
           artifacts: |
             release/sQeeZ-Parser-linux-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip,
             release/sQeeZ-Parser-macos-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip,
+            release/sQeeZ-Parser-windows-${{ github.run_number }}-${{ steps.determine_version.outputs.VERSION }}.zip
