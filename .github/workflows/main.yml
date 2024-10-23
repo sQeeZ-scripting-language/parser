@@ -85,10 +85,10 @@ jobs:
           exit 1
         fi
 
-        TEMP_DIR=$(mktemp -d)
+        TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
-        curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
-        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR" || { echo "Unzipping failed"; exit 1; }
+        curl --retry 5 -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
+        unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
         mv "$REPO_DIR/lexer/"* "$INCLUDE_DIR/"
@@ -126,7 +126,7 @@ jobs:
 
         TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
-        curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
+        curl --retry 5 -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
         mv "$REPO_DIR/"*/libsQeeZ-Lexer-Lib.a "$REPO_DIR/"
@@ -167,7 +167,7 @@ jobs:
 
         TEMP_DIR=$(mktemp -d "/tmp/lexer-XXXXXX")
 
-        curl -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
+        curl --retry 5 -L -o "$TEMP_DIR/sQeeZ-Lexer.zip" "$ZIP_URL"
         unzip "$TEMP_DIR/sQeeZ-Lexer.zip" -d "$REPO_DIR"
 
         mv "$REPO_DIR/"*/sQeeZ-Lexer-Lib.lib "$REPO_DIR/"
