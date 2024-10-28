@@ -134,7 +134,7 @@ std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
       declarationDone = true;
     }
   }
-  
+
   return std::make_unique<VarDeclaration>(type, std::move(declarations));
 }
 
@@ -503,7 +503,8 @@ std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> caller, std::u
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) {
     assertToken("SyntaxToken::DOT", "Expected dot operator for method chaining");
     auto followingMethod = parsePrimaryExpr();
-    callExpr = std::unique_ptr<CallExpr>(static_cast<CallExpr*>(parseCallExpr(std::move(callExpr), std::move(followingMethod)).release()));
+    callExpr = std::unique_ptr<CallExpr>(
+        static_cast<CallExpr*>(parseCallExpr(std::move(callExpr), std::move(followingMethod)).release()));
   }
 
   return callExpr;
@@ -699,7 +700,7 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
 // Utility functions
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
 
-Token Parser::peek(int steps) { 
+Token Parser::peek(int steps) {
   if (tokens.size() < steps) {
     return tokens.back();
   } else {

@@ -128,7 +128,7 @@ public:
   std::vector<std::pair<Token, std::unique_ptr<ASTNode>>> declarations;
 
   VarDeclaration(const Token& type, std::vector<std::pair<Token, std::unique_ptr<ASTNode>>>&& declarations)
-    : Stmt(NodeType::VarDeclaration), type(type), declarations(std::move(declarations)) {}
+      : Stmt(NodeType::VarDeclaration), type(type), declarations(std::move(declarations)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
