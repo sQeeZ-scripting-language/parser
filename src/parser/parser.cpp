@@ -112,14 +112,30 @@ std::unique_ptr<Stmt> Parser::parseReturnStatement() {
 
 std::unique_ptr<Stmt> Parser::parseVarDeclaration() {
   Token type = advance();  // var | const
-  Token identifier = assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.");
-
+  bool declarationDone = false;
+  std::vector<std::pair<Token, std::unique_ptr<ASTNode>>> declarations = {};
   std::unique_ptr<Expr> value = nullptr;
-  if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
-    assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
-    value = parseExpression();
+
+  while (!declarationDone) {
+    Token identifier = assertToken("DataToken::IDENTIFIER", "Expected identifier name following var | const keywords.");
+
+    if (peek().tag == Token::TypeTag::OPERATOR && peek().type.operatorToken == OperatorToken::ASSIGN) {
+      assertToken("OperatorToken::ASSIGN", "Expected assign token following identifier in var declaration.");
+      value = parseExpression();
+    } else {
+      value = nullptr;
+    }
+
+    declarations.push_back({identifier, value ? std::move(value) : nullptr});
+
+    if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
+      assertToken("SyntaxToken::COMMA", "Expected comma for chaining multiple declarations.");
+    } else {
+      declarationDone = true;
+    }
   }
-  return std::make_unique<VarDeclaration>(type, identifier, std::move(value));
+  
+  return std::make_unique<VarDeclaration>(type, std::move(declarations));
 }
 
 std::unique_ptr<Stmt> Parser::parseConditionalStatement() {

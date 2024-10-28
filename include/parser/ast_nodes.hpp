@@ -125,17 +125,22 @@ public:
 class VarDeclaration : public Stmt {
 public:
   Token type;
-  Token identifier;
-  std::unique_ptr<ASTNode> value;
+  std::vector<std::pair<Token, std::unique_ptr<ASTNode>>> declarations;
 
-  VarDeclaration(const Token& type, const Token& identifier, std::unique_ptr<ASTNode> value)
-      : Stmt(NodeType::VarDeclaration), type(type), identifier(identifier), value(std::move(value)) {}
+  VarDeclaration(const Token& type, std::vector<std::pair<Token, std::unique_ptr<ASTNode>>>&& declarations)
+    : Stmt(NodeType::VarDeclaration), type(type), declarations(std::move(declarations)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "VarDeclaration: " << type.value << " " << identifier.value;
-    if (value) {
-      oss << " = " << value->toString();
+    oss << "VarDeclaration: " << type.value << " ";
+    for (size_t i = 0; i < declarations.size(); ++i) {
+      oss << declarations[i].first.value;
+      if (declarations[i].second) {
+        oss << " = " << declarations[i].second->toString();
+      }
+      if (i < declarations.size() - 1) {
+        oss << ", ";
+      }
     }
     return oss.str();
   }
