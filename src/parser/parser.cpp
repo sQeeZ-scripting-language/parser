@@ -408,13 +408,13 @@ std::unique_ptr<Expr> Parser::parseArrayExpr() {
 
 std::unique_ptr<Expr> Parser::parseShortData() {
   assertToken("SyntaxToken::AT", "Expected '@' to start short data notation.");
-  // Short Notation -> Object @ key:value key:value
-  if (peek().tag == Token::TypeTag::DATA && peek().type.dataToken == DataToken::IDENTIFIER) {
+  // Short Notation -> Object @ key:value, key:value
+  if (peek(2).tag == Token::TypeTag::SYNTAX && peek(2).type.syntaxToken == SyntaxToken::COLON) {
     std::vector<std::unique_ptr<Property>> properties;
     while (true) {
       Token key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.");
       assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
-      auto value = parsePrimaryExpr();
+      auto value = parseExpression();
       properties.push_back(std::make_unique<Property>(Property{key, std::move(value)}));
       if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
         assertToken("SyntaxToken::COMMA", "Expected comma after property chain in short data notation.");
@@ -424,11 +424,11 @@ std::unique_ptr<Expr> Parser::parseShortData() {
     }
     return std::make_unique<ObjectLiteral>(std::move(properties));
   }
-  // Short Notation -> Array @ value value value
-  else if (peek().tag == Token::TypeTag::DATA) {
+  // Short Notation -> Array @ value, value, value
+  else {
     std::vector<std::unique_ptr<Expr>> elements;
     while (true) {
-      elements.push_back(parsePrimaryExpr());
+      elements.push_back(parseExpression());
       if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
         assertToken("SyntaxToken::COMMA", "Expected comma after element chain in short data notation.");
       } else {
@@ -436,8 +436,6 @@ std::unique_ptr<Expr> Parser::parseShortData() {
       }
     }
     return std::make_unique<ArrayLiteral>(std::move(elements));
-  } else {
-    throw std::invalid_argument("Unexpected short data notation.");
   }
 }
 
@@ -701,7 +699,13 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
 // Utility functions
 bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type.basicToken == BasicToken::TOKEN_EOF; }
 
-Token Parser::peek() { return tokens.front(); }
+Token Parser::peek(int steps) { 
+  if (tokens.size() < steps) {
+    return tokens.back();
+  } else {
+    return tokens[steps - 1];
+  }
+}
 
 Token Parser::advance() {
   Token token = tokens.front();

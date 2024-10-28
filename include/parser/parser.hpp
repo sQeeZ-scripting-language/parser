@@ -54,7 +54,7 @@ private:
 
   // Utility functions
   bool isEOF();
-  Token peek();
+  Token peek(int steps = 1);
   Token advance();
   Token assertToken(const std::string& expected, const std::string& errorMessage);
   void log(const std::unique_ptr<Program>& program, bool devMode);
