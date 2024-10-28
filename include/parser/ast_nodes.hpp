@@ -410,16 +410,21 @@ public:
 class CallExpr : public Expr {
 public:
   std::unique_ptr<Expr> caller;
+  std::unique_ptr<Expr> method;
   std::vector<std::unique_ptr<Expr>> args;
 
-  CallExpr() : Expr(NodeType::CallExpr), caller(nullptr), args() {}
+  CallExpr() : Expr(NodeType::CallExpr), caller(nullptr), method(nullptr), args() {}
 
-  CallExpr(std::unique_ptr<Expr> caller, std::vector<std::unique_ptr<Expr>> args)
-      : Expr(NodeType::CallExpr), caller(std::move(caller)), args(std::move(args)) {}
+  CallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method, std::vector<std::unique_ptr<Expr>> args)
+      : Expr(NodeType::CallExpr), caller(std::move(caller)), method(std::move(method)), args(std::move(args)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "CallExpr: " << caller->toString() << "(";
+    oss << "CallExpr: ";
+    if (caller) {
+      oss << caller->toString() << ".";
+    }
+    oss << method->toString() << "(";
     for (size_t i = 0; i < args.size(); ++i) {
       oss << args[i]->toString();
       if (i < args.size() - 1) {

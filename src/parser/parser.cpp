@@ -484,7 +484,7 @@ std::unique_ptr<Expr> Parser::parseCallMemberExpr() {
   auto expression = parseMemberExpr();
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
-    return parseCallExpr(std::move(expression));
+    return parseCallExpr(nullptr, std::move(expression));
   }
 
   if (peek().tag == Token::TypeTag::OPERATOR && (peek().type.operatorToken == OperatorToken::INCREMENT ||
@@ -496,13 +496,16 @@ std::unique_ptr<Expr> Parser::parseCallMemberExpr() {
   return expression;
 }
 
-std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> caller) {
+std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method) {
   auto callExpr = std::make_unique<CallExpr>();
   callExpr->caller = std::move(caller);
+  callExpr->method = std::move(method);
   callExpr->args = parseArgs();
 
-  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
-    callExpr = std::unique_ptr<CallExpr>(static_cast<CallExpr*>(parseCallExpr(std::move(callExpr)).release()));
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) {
+    assertToken("SyntaxToken::DOT", "Expected dot operator for method chaining");
+    auto followingMethod = parsePrimaryExpr();
+    callExpr = std::unique_ptr<CallExpr>(static_cast<CallExpr*>(parseCallExpr(std::move(callExpr), std::move(followingMethod)).release()));
   }
 
   return callExpr;
