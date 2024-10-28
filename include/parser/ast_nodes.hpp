@@ -125,17 +125,22 @@ public:
 class VarDeclaration : public Stmt {
 public:
   Token type;
-  Token identifier;
-  std::unique_ptr<ASTNode> value;
+  std::vector<std::pair<Token, std::unique_ptr<ASTNode>>> declarations;
 
-  VarDeclaration(const Token& type, const Token& identifier, std::unique_ptr<ASTNode> value)
-      : Stmt(NodeType::VarDeclaration), type(type), identifier(identifier), value(std::move(value)) {}
+  VarDeclaration(const Token& type, std::vector<std::pair<Token, std::unique_ptr<ASTNode>>>&& declarations)
+      : Stmt(NodeType::VarDeclaration), type(type), declarations(std::move(declarations)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "VarDeclaration: " << type.value << " " << identifier.value;
-    if (value) {
-      oss << " = " << value->toString();
+    oss << "VarDeclaration: " << type.value << " ";
+    for (size_t i = 0; i < declarations.size(); ++i) {
+      oss << declarations[i].first.value;
+      if (declarations[i].second) {
+        oss << " = " << declarations[i].second->toString();
+      }
+      if (i < declarations.size() - 1) {
+        oss << ", ";
+      }
     }
     return oss.str();
   }
@@ -405,16 +410,21 @@ public:
 class CallExpr : public Expr {
 public:
   std::unique_ptr<Expr> caller;
+  std::unique_ptr<Expr> method;
   std::vector<std::unique_ptr<Expr>> args;
 
-  CallExpr() : Expr(NodeType::CallExpr), caller(nullptr), args() {}
+  CallExpr() : Expr(NodeType::CallExpr), caller(nullptr), method(nullptr), args() {}
 
-  CallExpr(std::unique_ptr<Expr> caller, std::vector<std::unique_ptr<Expr>> args)
-      : Expr(NodeType::CallExpr), caller(std::move(caller)), args(std::move(args)) {}
+  CallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method, std::vector<std::unique_ptr<Expr>> args)
+      : Expr(NodeType::CallExpr), caller(std::move(caller)), method(std::move(method)), args(std::move(args)) {}
 
   std::string toString() const override {
     std::ostringstream oss;
-    oss << "CallExpr: " << caller->toString() << "(";
+    oss << "CallExpr: ";
+    if (caller) {
+      oss << caller->toString() << ".";
+    }
+    oss << method->toString() << "(";
     for (size_t i = 0; i < args.size(); ++i) {
       oss << args[i]->toString();
       if (i < args.size() - 1) {

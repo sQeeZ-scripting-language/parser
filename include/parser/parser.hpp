@@ -45,7 +45,7 @@ private:
   std::unique_ptr<Expr> parseMultiplicativeExpr();
   std::unique_ptr<Expr> parsePowerExpr();
   std::unique_ptr<Expr> parseCallMemberExpr();
-  std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> caller);
+  std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method);
   std::vector<std::unique_ptr<Expr>> parseArgs();
   std::vector<std::unique_ptr<Expr>> parseArgumentsList();
   std::unique_ptr<Expr> parseMemberExpr();
@@ -54,7 +54,7 @@ private:
 
   // Utility functions
   bool isEOF();
-  Token peek();
+  Token peek(int steps = 1);
   Token advance();
   Token assertToken(const std::string& expected, const std::string& errorMessage);
   void log(const std::unique_ptr<Program>& program, bool devMode);
