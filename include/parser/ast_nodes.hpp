@@ -422,7 +422,7 @@ public:
         assignee(std::move(assignee)),
         value(std::move(value)),
         operator_(operator_) {}
-  
+
   CompoundAssignmentExpr(const CompoundAssignmentExpr&) = delete;
   CompoundAssignmentExpr& operator=(const CompoundAssignmentExpr&) = delete;
   CompoundAssignmentExpr(CompoundAssignmentExpr&&) noexcept = default;
