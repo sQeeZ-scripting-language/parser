@@ -60,12 +60,22 @@ class Stmt : public ASTNode {
 public:
   NodeType kind;
   explicit Stmt(const NodeType& kind) : kind(kind) {}
+
+  Stmt(const Stmt&) = delete;
+  Stmt& operator=(const Stmt&) = delete;
+  Stmt(Stmt&&) noexcept = default;
+  Stmt& operator=(Stmt&&) noexcept = default;
 };
 
 // Expressions (result in a runtime value)
 class Expr : public Stmt {
 public:
   explicit Expr(const NodeType& kind) : Stmt(kind) {}
+
+  Expr(const Expr&) = delete;
+  Expr& operator=(const Expr&) = delete;
+  Expr(Expr&&) noexcept = default;
+  Expr& operator=(Expr&&) noexcept = default;
 };
 
 // Statements
@@ -74,6 +84,11 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   Program() : Stmt(NodeType::Program) {}
+
+  Program(const Program&) = delete;
+  Program& operator=(const Program&) = delete;
+  Program(Program&&) noexcept = default;
+  Program& operator=(Program&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -95,6 +110,11 @@ public:
 
   FunctionDeclaration(const Token& name, std::vector<Token> parameters, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::FunctionDeclaration), name(name), parameters(std::move(parameters)), body(std::move(body)) {}
+
+  FunctionDeclaration(const FunctionDeclaration&) = delete;
+  FunctionDeclaration& operator=(const FunctionDeclaration&) = delete;
+  FunctionDeclaration(FunctionDeclaration&&) noexcept = default;
+  FunctionDeclaration& operator=(FunctionDeclaration&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -119,6 +139,11 @@ public:
 
   explicit ReturnStmt(std::unique_ptr<Expr> value) : Stmt(NodeType::ReturnStmt), value(std::move(value)) {}
 
+  ReturnStmt(const ReturnStmt&) = delete;
+  ReturnStmt& operator=(const ReturnStmt&) = delete;
+  ReturnStmt(ReturnStmt&&) noexcept = default;
+  ReturnStmt& operator=(ReturnStmt&&) noexcept = default;
+
   std::string toString() const override { return "ReturnStmt: " + (value ? value->toString() : "null"); }
 };
 
@@ -129,6 +154,11 @@ public:
 
   VarDeclaration(const Token& type, std::vector<std::pair<Token, std::unique_ptr<ASTNode>>>&& declarations)
       : Stmt(NodeType::VarDeclaration), type(type), declarations(std::move(declarations)) {}
+
+  VarDeclaration(const VarDeclaration&) = delete;
+  VarDeclaration& operator=(const VarDeclaration&) = delete;
+  VarDeclaration(VarDeclaration&&) noexcept = default;
+  VarDeclaration& operator=(VarDeclaration&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -159,6 +189,11 @@ public:
         ifClause(std::move(ifClause)),
         elifClauses(std::move(elifClauses)),
         elseBody(std::move(elseBody)) {}
+
+  ConditionalStatement(const ConditionalStatement&) = delete;
+  ConditionalStatement& operator=(const ConditionalStatement&) = delete;
+  ConditionalStatement(ConditionalStatement&&) noexcept = default;
+  ConditionalStatement& operator=(ConditionalStatement&&) noexcept = default;
 
   std::string toString() const override {
     std::string result = "ConditionalStatement: ";
@@ -193,6 +228,11 @@ public:
   WhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::WhileStatement), condition(std::move(condition)), body(std::move(body)) {}
 
+  WhileStmt(const WhileStmt&) = delete;
+  WhileStmt& operator=(const WhileStmt&) = delete;
+  WhileStmt(WhileStmt&&) noexcept = default;
+  WhileStmt& operator=(WhileStmt&&) noexcept = default;
+
   std::string toString() const override {
     std::string result = "WhileStatement: ";
     result += "while (" + condition->toString() + ") {\n";
@@ -211,6 +251,11 @@ public:
 
   DoWhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
       : Stmt(NodeType::DoWhileStatement), condition(std::move(condition)), body(std::move(body)) {}
+
+  DoWhileStmt(const DoWhileStmt&) = delete;
+  DoWhileStmt& operator=(const DoWhileStmt&) = delete;
+  DoWhileStmt(DoWhileStmt&&) noexcept = default;
+  DoWhileStmt& operator=(DoWhileStmt&&) noexcept = default;
 
   std::string toString() const override {
     std::string result = "DoWhileStmt: ";
@@ -237,6 +282,11 @@ public:
         condition(std::move(condition)),
         increment(std::move(increment)),
         body(std::move(body)) {}
+
+  ForStmt(const ForStmt&) = delete;
+  ForStmt& operator=(const ForStmt&) = delete;
+  ForStmt(ForStmt&&) noexcept = default;
+  ForStmt& operator=(ForStmt&&) noexcept = default;
 
   std::string toString() const override {
     std::string result = "ForStmt: ";
@@ -273,6 +323,11 @@ public:
         iterable(std::move(iterable)),
         body(std::move(body)) {}
 
+  ForInStmt(const ForInStmt&) = delete;
+  ForInStmt& operator=(const ForInStmt&) = delete;
+  ForInStmt(ForInStmt&&) noexcept = default;
+  ForInStmt& operator=(ForInStmt&&) noexcept = default;
+
   std::string toString() const override {
     std::string result = "ForInStmt: ";
     result += "for (" + iterator->toString() + " in " + iterable->toString() + ") {\n";
@@ -296,6 +351,11 @@ public:
         iterable(std::move(iterable)),
         body(std::move(body)) {}
 
+  ForOfStmt(const ForOfStmt&) = delete;
+  ForOfStmt& operator=(const ForOfStmt&) = delete;
+  ForOfStmt(ForOfStmt&&) noexcept = default;
+  ForOfStmt& operator=(ForOfStmt&&) noexcept = default;
+
   std::string toString() const override {
     std::string result = "ForOfStmt: ";
     result += "for (" + iterator->toString() + " of " + iterable->toString() + ") {\n";
@@ -315,6 +375,11 @@ public:
 
   LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
       : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
+
+  LogStmt(const LogStmt&) = delete;
+  LogStmt& operator=(const LogStmt&) = delete;
+  LogStmt(LogStmt&&) noexcept = default;
+  LogStmt& operator=(LogStmt&&) noexcept = default;
 
   virtual std::string toString() const override {
     std::stringstream ss;
@@ -336,6 +401,11 @@ public:
   AssignmentExpr(std::unique_ptr<Expr> assignee, std::unique_ptr<Expr> value)
       : Expr(NodeType::AssignmentExpr), assignee(std::move(assignee)), value(std::move(value)) {}
 
+  AssignmentExpr(const AssignmentExpr&) = delete;
+  AssignmentExpr& operator=(const AssignmentExpr&) = delete;
+  AssignmentExpr(AssignmentExpr&&) noexcept = default;
+  AssignmentExpr& operator=(AssignmentExpr&&) noexcept = default;
+
   std::string toString() const override {
     return "AssignmentExpr: " + assignee->toString() + " = " + value->toString();
   }
@@ -352,6 +422,11 @@ public:
         assignee(std::move(assignee)),
         value(std::move(value)),
         operator_(operator_) {}
+  
+  CompoundAssignmentExpr(const CompoundAssignmentExpr&) = delete;
+  CompoundAssignmentExpr& operator=(const CompoundAssignmentExpr&) = delete;
+  CompoundAssignmentExpr(CompoundAssignmentExpr&&) noexcept = default;
+  CompoundAssignmentExpr& operator=(CompoundAssignmentExpr&&) noexcept = default;
 
   std::string toString() const override {
     return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_.value + " " + value->toString();
@@ -370,6 +445,11 @@ public:
         trueExpr(std::move(trueExpr)),
         falseExpr(std::move(falseExpr)) {}
 
+  TernaryExpr(const TernaryExpr&) = delete;
+  TernaryExpr& operator=(const TernaryExpr&) = delete;
+  TernaryExpr(TernaryExpr&&) noexcept = default;
+  TernaryExpr& operator=(TernaryExpr&&) noexcept = default;
+
   std::string toString() const override {
     return "TernaryExpr: " + condition->toString() + " ? " + trueExpr->toString() + " : " + falseExpr->toString();
   }
@@ -384,6 +464,11 @@ public:
   BinaryExpr(std::unique_ptr<Expr> left, std::unique_ptr<Expr> right, const Token& operator_)
       : Expr(NodeType::BinaryExpr), left(std::move(left)), right(std::move(right)), operator_(operator_) {}
 
+  BinaryExpr(const BinaryExpr&) = delete;
+  BinaryExpr& operator=(const BinaryExpr&) = delete;
+  BinaryExpr(BinaryExpr&&) noexcept = default;
+  BinaryExpr& operator=(BinaryExpr&&) noexcept = default;
+
   std::string toString() const override {
     return "BinaryExpr: (" + left->toString() + " " + operator_.value + " " + right->toString() + ")";
   }
@@ -397,6 +482,11 @@ public:
 
   UnaryExpr(Token operator_, std::unique_ptr<Expr> operand, bool isPrefix)
       : Expr(NodeType::UnaryExpr), operator_(operator_), operand(std::move(operand)), isPrefix(isPrefix) {}
+
+  UnaryExpr(const UnaryExpr&) = delete;
+  UnaryExpr& operator=(const UnaryExpr&) = delete;
+  UnaryExpr(UnaryExpr&&) noexcept = default;
+  UnaryExpr& operator=(UnaryExpr&&) noexcept = default;
 
   std::string toString() const override {
     if (isPrefix) {
@@ -417,6 +507,11 @@ public:
 
   CallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method, std::vector<std::unique_ptr<Expr>> args)
       : Expr(NodeType::CallExpr), caller(std::move(caller)), method(std::move(method)), args(std::move(args)) {}
+
+  CallExpr(const CallExpr&) = delete;
+  CallExpr& operator=(const CallExpr&) = delete;
+  CallExpr(CallExpr&&) noexcept = default;
+  CallExpr& operator=(CallExpr&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -445,6 +540,11 @@ public:
   MemberExpr(std::unique_ptr<Expr> object, std::unique_ptr<Expr> property, bool computed)
       : Expr(NodeType::MemberExpr), object(std::move(object)), property(std::move(property)), computed(computed) {}
 
+  MemberExpr(const MemberExpr&) = delete;
+  MemberExpr& operator=(const MemberExpr&) = delete;
+  MemberExpr(MemberExpr&&) noexcept = default;
+  MemberExpr& operator=(MemberExpr&&) noexcept = default;
+
   std::string toString() const override {
     return "MemberExpr: " + object->toString() +
            (computed ? "[" + property->toString() + "]" : "." + property->toString());
@@ -459,6 +559,11 @@ public:
 
   Property(const Token& key, std::unique_ptr<Expr> value = nullptr)
       : Expr(NodeType::Property), key(key), value(std::move(value)) {}
+
+  Property(const Property&) = delete;
+  Property& operator=(const Property&) = delete;
+  Property(Property&&) noexcept = default;
+  Property& operator=(Property&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -476,6 +581,11 @@ public:
 
   explicit ObjectLiteral(std::vector<std::unique_ptr<Property>> properties)
       : Expr(NodeType::ObjectLiteral), properties(std::move(properties)) {}
+
+  ObjectLiteral(const ObjectLiteral&) = delete;
+  ObjectLiteral& operator=(const ObjectLiteral&) = delete;
+  ObjectLiteral(ObjectLiteral&&) noexcept = default;
+  ObjectLiteral& operator=(ObjectLiteral&&) noexcept = default;
 
   std::string toString() const override {
     std::ostringstream oss;
@@ -498,6 +608,11 @@ public:
   explicit ArrayLiteral(std::vector<std::unique_ptr<Expr>> elems)
       : Expr(NodeType::ArrayLiteral), elements(std::move(elems)) {}
 
+  ArrayLiteral(const ArrayLiteral&) = delete;
+  ArrayLiteral& operator=(const ArrayLiteral&) = delete;
+  ArrayLiteral(ArrayLiteral&&) noexcept = default;
+  ArrayLiteral& operator=(ArrayLiteral&&) noexcept = default;
+
   std::string toString() const override {
     std::string result = "[";
     for (size_t i = 0; i < elements.size(); ++i) {
@@ -517,12 +632,22 @@ public:
 
   explicit Identifier(const Token& identifier) : Expr(NodeType::Identifier), identifier(identifier) {}
 
+  Identifier(const Identifier&) = delete;
+  Identifier& operator=(const Identifier&) = delete;
+  Identifier(Identifier&&) noexcept = default;
+  Identifier& operator=(Identifier&&) noexcept = default;
+
   std::string toString() const override { return "Identifier: " + identifier.value; }
 };
 
 class NullLiteral : public Expr {
 public:
   explicit NullLiteral() : Expr(NodeType::NullLiteral) {}
+
+  NullLiteral(const NullLiteral&) = delete;
+  NullLiteral& operator=(const NullLiteral&) = delete;
+  NullLiteral(NullLiteral&&) noexcept = default;
+  NullLiteral& operator=(NullLiteral&&) noexcept = default;
 
   std::string toString() const override { return "NullLiteral"; }
 };
@@ -533,6 +658,11 @@ public:
 
   explicit IntegerLiteral(int value) : Expr(NodeType::IntegerLiteral), value(value) {}
 
+  IntegerLiteral(const IntegerLiteral&) = delete;
+  IntegerLiteral& operator=(const IntegerLiteral&) = delete;
+  IntegerLiteral(IntegerLiteral&&) noexcept = default;
+  IntegerLiteral& operator=(IntegerLiteral&&) noexcept = default;
+
   std::string toString() const override { return "IntegerLiteral: " + std::to_string(value); }
 };
 
@@ -541,6 +671,11 @@ public:
   double value;
 
   explicit DoubleLiteral(double value) : Expr(NodeType::DoubleLiteral), value(value) {}
+
+  DoubleLiteral(const DoubleLiteral&) = delete;
+  DoubleLiteral& operator=(const DoubleLiteral&) = delete;
+  DoubleLiteral(DoubleLiteral&&) noexcept = default;
+  DoubleLiteral& operator=(DoubleLiteral&&) noexcept = default;
 
   std::string toString() const override { return "DoubleLiteral: " + std::to_string(value); }
 };
@@ -551,6 +686,11 @@ public:
 
   explicit BooleanLiteral(bool value) : Expr(NodeType::BooleanLiteral), value(value) {}
 
+  BooleanLiteral(const BooleanLiteral&) = delete;
+  BooleanLiteral& operator=(const BooleanLiteral&) = delete;
+  BooleanLiteral(BooleanLiteral&&) noexcept = default;
+  BooleanLiteral& operator=(BooleanLiteral&&) noexcept = default;
+
   std::string toString() const override { return "BooleanLiteral: " + std::to_string(value); }
 };
 
@@ -559,6 +699,11 @@ public:
   char value;
 
   explicit CharLiteral(char value) : Expr(NodeType::CharLiteral), value(value) {}
+
+  CharLiteral(const CharLiteral&) = delete;
+  CharLiteral& operator=(const CharLiteral&) = delete;
+  CharLiteral(CharLiteral&&) noexcept = default;
+  CharLiteral& operator=(CharLiteral&&) noexcept = default;
 
   std::string toString() const override { return "CharLiteral: '" + std::string(1, value) + "'"; }
 };
@@ -569,6 +714,11 @@ public:
 
   explicit StringLiteral(std::string value) : Expr(NodeType::StringLiteral), value(std::move(value)) {}
 
+  StringLiteral(const StringLiteral&) = delete;
+  StringLiteral& operator=(const StringLiteral&) = delete;
+  StringLiteral(StringLiteral&&) noexcept = default;
+  StringLiteral& operator=(StringLiteral&&) noexcept = default;
+
   std::string toString() const override { return "StringLiteral: \"" + value + "\""; }
 };
 
@@ -577,6 +727,11 @@ public:
   std::string value;
 
   explicit HexCodeLiteral(std::string value) : Expr(NodeType::HexCodeLiteral), value(std::move(value)) {}
+
+  HexCodeLiteral(const HexCodeLiteral&) = delete;
+  HexCodeLiteral& operator=(const HexCodeLiteral&) = delete;
+  HexCodeLiteral(HexCodeLiteral&&) noexcept = default;
+  HexCodeLiteral& operator=(HexCodeLiteral&&) noexcept = default;
 
   std::string toString() const override { return "HexCodeLiteral: " + value; }
 };
@@ -591,6 +746,11 @@ public:
   ShortOperationLiteral(const Token& type, const Token& operation_, std::unique_ptr<Expr> value)
       : Expr(NodeType::ShortOperationLiteral), type(type), operation_(operation_), value(std::move(value)) {}
 
+  ShortOperationLiteral(const ShortOperationLiteral&) = delete;
+  ShortOperationLiteral& operator=(const ShortOperationLiteral&) = delete;
+  ShortOperationLiteral(ShortOperationLiteral&&) noexcept = default;
+  ShortOperationLiteral& operator=(ShortOperationLiteral&&) = default;
+
   std::string toString() const override {
     return "ShortOperationLiteral: " + type.plainText + "(" + operation_.value + value->toString() + ")";
   }
@@ -603,6 +763,11 @@ public:
 
   ShortSingleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value)
       : Expr(NodeType::ShortSingleExpressionLiteral), type(type), value(std::move(value)) {}
+
+  ShortSingleExpressionLiteral(const ShortSingleExpressionLiteral&) = delete;
+  ShortSingleExpressionLiteral& operator=(const ShortSingleExpressionLiteral&) = delete;
+  ShortSingleExpressionLiteral(ShortSingleExpressionLiteral&&) noexcept = default;
+  ShortSingleExpressionLiteral& operator=(ShortSingleExpressionLiteral&&) = default;
 
   std::string toString() const override {
     return "ShortSingleExpressionLiteral: " + type.plainText + "(" + value->toString() + ")";
@@ -620,6 +785,11 @@ public:
         type(type),
         value1(std::move(value1)),
         value2(std::move(value2)) {}
+
+  ShortDoubleExpressionLiteral(const ShortDoubleExpressionLiteral&) = delete;
+  ShortDoubleExpressionLiteral& operator=(const ShortDoubleExpressionLiteral&) = delete;
+  ShortDoubleExpressionLiteral(ShortDoubleExpressionLiteral&&) noexcept = default;
+  ShortDoubleExpressionLiteral& operator=(ShortDoubleExpressionLiteral&&) = default;
 
   std::string toString() const override {
     return "ShortDoubleExpressionLiteral: " + type.plainText + "(" + value1->toString() + ", " + value2->toString() +
