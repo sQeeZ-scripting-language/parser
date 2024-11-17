@@ -15,12 +15,12 @@ enum class NodeType {
   FunctionDeclaration,
   ReturnStmt,
   VarDeclaration,
-  ConditionalStatement,
-  WhileStatement,
-  DoWhileStatement,
-  ForStatement,
-  ForInStatement,
-  ForOfStatement,
+  ConditionalStmt,
+  WhileStmt,
+  DoWhileStmt,
+  ForStmt,
+  ForInStmt,
+  ForOfStmt,
   LogStmt,
   // EXPRESSIONS
   AssignmentExpr,
@@ -176,27 +176,27 @@ public:
   }
 };
 
-class ConditionalStatement : public Stmt {
+class ConditionalStmt : public Stmt {
 public:
   std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause;
   std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses;
   std::vector<std::unique_ptr<Stmt>> elseBody;
 
-  ConditionalStatement(std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause,
-                       std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses,
-                       std::vector<std::unique_ptr<Stmt>> elseBody)
-      : Stmt(NodeType::ConditionalStatement),
+  ConditionalStmt(std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause,
+                  std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses,
+                  std::vector<std::unique_ptr<Stmt>> elseBody)
+      : Stmt(NodeType::ConditionalStmt),
         ifClause(std::move(ifClause)),
         elifClauses(std::move(elifClauses)),
         elseBody(std::move(elseBody)) {}
 
-  ConditionalStatement(const ConditionalStatement&) = delete;
-  ConditionalStatement& operator=(const ConditionalStatement&) = delete;
-  ConditionalStatement(ConditionalStatement&&) noexcept = default;
-  ConditionalStatement& operator=(ConditionalStatement&&) noexcept = default;
+  ConditionalStmt(const ConditionalStmt&) = delete;
+  ConditionalStmt& operator=(const ConditionalStmt&) = delete;
+  ConditionalStmt(ConditionalStmt&&) noexcept = default;
+  ConditionalStmt& operator=(ConditionalStmt&&) noexcept = default;
 
   std::string toString() const override {
-    std::string result = "ConditionalStatement: ";
+    std::string result = "ConditionalStmt: ";
     result += "if (" + ifClause.first->toString() + ") {\n";
     for (const auto& stmt : ifClause.second) {
       result += "    " + stmt->toString() + "\n";
@@ -226,7 +226,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   WhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::WhileStatement), condition(std::move(condition)), body(std::move(body)) {}
+      : Stmt(NodeType::WhileStmt), condition(std::move(condition)), body(std::move(body)) {}
 
   WhileStmt(const WhileStmt&) = delete;
   WhileStmt& operator=(const WhileStmt&) = delete;
@@ -234,7 +234,7 @@ public:
   WhileStmt& operator=(WhileStmt&&) noexcept = default;
 
   std::string toString() const override {
-    std::string result = "WhileStatement: ";
+    std::string result = "WhileStmt: ";
     result += "while (" + condition->toString() + ") {\n";
     for (const auto& stmt : body) {
       result += "    " + stmt->toString() + "\n";
@@ -250,7 +250,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   DoWhileStmt(std::unique_ptr<Expr> condition, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::DoWhileStatement), condition(std::move(condition)), body(std::move(body)) {}
+      : Stmt(NodeType::DoWhileStmt), condition(std::move(condition)), body(std::move(body)) {}
 
   DoWhileStmt(const DoWhileStmt&) = delete;
   DoWhileStmt& operator=(const DoWhileStmt&) = delete;
@@ -277,7 +277,7 @@ public:
 
   ForStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> condition, std::unique_ptr<Expr> increment,
           std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ForStatement),
+      : Stmt(NodeType::ForStmt),
         iterator(std::move(iterator)),
         condition(std::move(condition)),
         increment(std::move(increment)),
@@ -318,7 +318,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForInStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ForInStatement),
+      : Stmt(NodeType::ForInStmt),
         iterator(std::move(iterator)),
         iterable(std::move(iterable)),
         body(std::move(body)) {}
@@ -346,7 +346,7 @@ public:
   std::vector<std::unique_ptr<Stmt>> body;
 
   ForOfStmt(std::unique_ptr<Stmt> iterator, std::unique_ptr<Expr> iterable, std::vector<std::unique_ptr<Stmt>> body)
-      : Stmt(NodeType::ForOfStatement),
+      : Stmt(NodeType::ForOfStmt),
         iterator(std::move(iterator)),
         iterable(std::move(iterable)),
         body(std::move(body)) {}

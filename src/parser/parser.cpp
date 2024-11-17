@@ -169,7 +169,7 @@ std::unique_ptr<Stmt> Parser::parseConditionalStatement() {
     elseBody = parseStatementBlock();
   }
 
-  return std::make_unique<ConditionalStatement>(std::move(ifClause), std::move(elifClauses), std::move(elseBody));
+  return std::make_unique<ConditionalStmt>(std::move(ifClause), std::move(elifClauses), std::move(elseBody));
 }
 
 std::unique_ptr<Stmt> Parser::parseWhileStatement() {
@@ -627,6 +627,14 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
       case OperatorToken::DECREMENT:
         token = advance();  // ++ | --
         return std::make_unique<UnaryExpr>(token, parsePrimaryExpr(), true);
+      default:
+        break;
+    }
+  } else if (token.tag == Token::TypeTag::LOGICAL) {
+    switch (token.type.logicalToken) {
+      case LogicalToken::NOT:
+        token = advance();  // !
+        return std::make_unique<UnaryExpr>(token, parseExpression(), true);
       default:
         break;
     }
