@@ -630,6 +630,14 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
       default:
         break;
     }
+  } else if (token.tag == Token::TypeTag::LOGICAL) {
+    switch (token.type.logicalToken) {
+      case LogicalToken::NOT:
+        token = advance();  // !
+        return std::make_unique<UnaryExpr>(token, parseExpression(), true);
+      default:
+        break;
+    }
   } else if (token.tag == Token::TypeTag::SHORT_NOTATION) {
     return parseShortExpr();
   }
