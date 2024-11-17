@@ -183,8 +183,8 @@ public:
   std::vector<std::unique_ptr<Stmt>> elseBody;
 
   ConditionalStmt(std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>> ifClause,
-                       std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses,
-                       std::vector<std::unique_ptr<Stmt>> elseBody)
+                  std::vector<std::pair<std::unique_ptr<Expr>, std::vector<std::unique_ptr<Stmt>>>> elifClauses,
+                  std::vector<std::unique_ptr<Stmt>> elseBody)
       : Stmt(NodeType::ConditionalStmt),
         ifClause(std::move(ifClause)),
         elifClauses(std::move(elifClauses)),
