@@ -622,7 +622,18 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         break;
     }
   } else if (token.tag == Token::TypeTag::OPERATOR) {
+    Token nextToken = peek();
     switch (token.type.operatorToken) {
+      case OperatorToken::SUBTRACTION:
+        advance();  // -
+        nextToken = peek();
+        if (nextToken.tag == Token::TypeTag::DATA && nextToken.type.dataToken == DataToken::INTEGER_LITERAL) {
+          return std::make_unique<IntegerLiteral>(IntegerLiteral{-std::stoi(advance().value)});
+        } else if (nextToken.tag == Token::TypeTag::DATA && nextToken.type.dataToken == DataToken::DOUBLE_LITERAL) {
+          return std::make_unique<DoubleLiteral>(DoubleLiteral{-std::stod(advance().value)});
+        } else {
+          throw std::invalid_argument("Unexpected token found after '-' operator: " + advance().plainText);
+        }
       case OperatorToken::INCREMENT:
       case OperatorToken::DECREMENT:
         token = advance();  // ++ | --
