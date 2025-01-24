@@ -550,15 +550,21 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       if (property->kind != NodeType::Identifier) {
         throw std::invalid_argument("Cannot use dot operator without right-hand side being an identifier.");
       }
+      // method call
+      if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+        object = parseCallExpr(std::move(object), std::move(property));
+      } else {
+        object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
+      }
     }
     // bracket notation
     else {
       computed = true;
       property = parseExpression();
       assertToken("SyntaxToken::CLOSE_BRACKET", "Missing closing bracket in computed value.");
+      object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
     }
 
-    object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
   }
 
   return object;
