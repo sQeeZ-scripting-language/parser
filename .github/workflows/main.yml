@@ -44,7 +44,7 @@ jobs:
           local replacements=$(echo "$result" | grep -o "<replacement " | wc -l)
           if [ "$replacements" -ne 0 ]; then
             echo "Code style issues found in file: $file"
-            clang-format -style=file "$file" | diff "$file" - | colordiff
+            clang-format -style=file "$file" | diff "$file" - || true
             echo "Number of replacements: $replacements"
             return 1
           fi
@@ -216,7 +216,7 @@ jobs:
         }
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-output-${{ matrix.os }}
         if-no-files-found: error
@@ -232,19 +232,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Download build artifacts (Linux)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-output-ubuntu-latest
           path: ./build-output-ubuntu
 
       - name: Download build artifacts (macOS)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-output-macos-latest
           path: ./build-output-macos
 
       - name: Download build artifacts (Windows)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: build-output-windows-latest
           path: ./build-output-windows
