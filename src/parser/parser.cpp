@@ -12,9 +12,8 @@ std::unique_ptr<Program> Parser::parse(bool devMode) {
 void Parser::handleException(const std::exception& e) {
   std::string exceptionType = typeid(e).name();
 
-  std::cerr << "\033[1;30m\033[41m[sQeeZ]: "
-            << "Exception of type: " << exceptionType << " - Message: " << e.what() << "\033[0m" << std::endl;
-
+  std::cerr << "\033[1;30m\033[41m[sQeeZ]: Exception of type: " << exceptionType << " - Message: " << e.what()
+            << "\033[0m" << std::endl;
   std::exit(EXIT_FAILURE);
 }
 
@@ -564,7 +563,6 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       assertToken("SyntaxToken::CLOSE_BRACKET", "Missing closing bracket in computed value.");
       object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
     }
-
   }
 
   return object;
