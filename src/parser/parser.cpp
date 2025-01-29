@@ -626,21 +626,24 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' to start parenthesised expression.");
         while (true) {
           i++;
-          if (lookAhead(i).tag == Token::TypeTag::SYNTAX && lookAhead(i).type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+          if (lookAhead(i).tag == Token::TypeTag::SYNTAX &&
+              lookAhead(i).type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
             scope++;
-          } else if (lookAhead(i).tag == Token::TypeTag::SYNTAX && lookAhead(i).type.syntaxToken == SyntaxToken::CLOSE_PARENTHESIS) {
+          } else if (lookAhead(i).tag == Token::TypeTag::SYNTAX &&
+                     lookAhead(i).type.syntaxToken == SyntaxToken::CLOSE_PARENTHESIS) {
             if (scope == 0) {
               break;
             }
             scope--;
           }
         }
-        if (lookAhead(i + 1).tag == Token::TypeTag::SYNTAX && lookAhead(i + 1).type.syntaxToken == SyntaxToken::CALLBACK) {
+        if (lookAhead(i + 1).tag == Token::TypeTag::SYNTAX &&
+            lookAhead(i + 1).type.syntaxToken == SyntaxToken::CALLBACK) {
           expression = parseCallbackFunctionExpr();
         } else {
           expression = parseExpression();
           assertToken("SyntaxToken::CLOSE_PARENTHESIS",
-                    "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
+                      "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
         }
         return expression;
       case SyntaxToken::DOUBLE_QUOTE:
