@@ -40,6 +40,7 @@ private:
   std::unique_ptr<Expr> parsePipeExpr();
   std::unique_ptr<Expr> parseObjectExpr();
   std::unique_ptr<Expr> parseArrayExpr();
+  std::unique_ptr<Expr> parseCallbackFunctionExpr();
   std::unique_ptr<Expr> parseShortData();
   std::unique_ptr<Expr> parseAdditiveExpr();
   std::unique_ptr<Expr> parseMultiplicativeExpr();
@@ -55,6 +56,7 @@ private:
   // Utility functions
   bool isEOF();
   Token peek(int steps = 1);
+  Token lookAhead(int steps);
   Token advance();
   Token assertToken(const std::string& expected, const std::string& errorMessage);
   void log(const std::unique_ptr<Program>& program, bool devMode);

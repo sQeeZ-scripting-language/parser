@@ -405,6 +405,28 @@ std::unique_ptr<Expr> Parser::parseArrayExpr() {
   return std::make_unique<ArrayLiteral>(std::move(elements));
 }
 
+std::unique_ptr<Expr> Parser::parseCallbackFunctionExpr() {
+  std::vector<Token> params;
+  while (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::CLOSE_PARENTHESIS)) {
+    if (params.size() > 0) {
+      assertToken("SyntaxToken::COMMA", "Expected comma between callback function parameters.");
+    }
+    params.push_back(assertToken("DataToken::IDENTIFIER", "Expected identifier in callback function parameters."));
+  }
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected closing parenthesis after callback function parameters.");
+  assertToken("SyntaxToken::CALLBACK", "Expected '=>' to start callback function body.");
+  std::vector<std::unique_ptr<Stmt>> body = {};
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACE) {
+    assertToken("SyntaxToken::OPEN_BRACE", "Expected '{' to start callback function body.");
+    body = parseStatementBlock();
+  } else {
+    body.push_back(parseStatement());
+    skipSemicolon();
+  }
+  skipSemicolon();
+  return std::make_unique<CallbackFunctionExpr>(std::move(params), std::move(body));
+}
+
 std::unique_ptr<Expr> Parser::parseShortData() {
   assertToken("SyntaxToken::AT", "Expected '@' to start short data notation.");
   // Short Notation -> Object @ key:value, key:value
@@ -598,12 +620,28 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
   } else if (token.tag == Token::TypeTag::SYNTAX) {
     std::unique_ptr<Expr> expression;
     std::string value;
+    int i, scope = 0;
     switch (token.type.syntaxToken) {
       case SyntaxToken::OPEN_PARENTHESIS:
         assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' to start parenthesised expression.");
-        expression = parseExpression();
-        assertToken("SyntaxToken::CLOSE_PARENTHESIS",
+        while (true) {
+          i++;
+          if (lookAhead(i).tag == Token::TypeTag::SYNTAX && lookAhead(i).type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
+            scope++;
+          } else if (lookAhead(i).tag == Token::TypeTag::SYNTAX && lookAhead(i).type.syntaxToken == SyntaxToken::CLOSE_PARENTHESIS) {
+            if (scope == 0) {
+              break;
+            }
+            scope--;
+          }
+        }
+        if (lookAhead(i + 1).tag == Token::TypeTag::SYNTAX && lookAhead(i + 1).type.syntaxToken == SyntaxToken::CALLBACK) {
+          expression = parseCallbackFunctionExpr();
+        } else {
+          expression = parseExpression();
+          assertToken("SyntaxToken::CLOSE_PARENTHESIS",
                     "Unexpected token found inside parenthesised expression. Expected closing parenthesis.");
+        }
         return expression;
       case SyntaxToken::DOUBLE_QUOTE:
         assertToken("SyntaxToken::DOUBLE_QUOTE", "Expected opening double quote");
@@ -726,6 +764,14 @@ bool Parser::isEOF() { return peek().tag == Token::TypeTag::BASIC && peek().type
 Token Parser::peek(int steps) {
   if (tokens.size() < steps) {
     return tokens.back();
+  } else {
+    return tokens[steps - 1];
+  }
+}
+
+Token Parser::lookAhead(int steps) {
+  if (tokens.size() < steps) {
+    throw std::runtime_error("Unexpected end of file");
   } else {
     return tokens[steps - 1];
   }
