@@ -25,6 +25,7 @@ enum class NodeType {
   // EXPRESSIONS
   AssignmentExpr,
   CompoundAssignmentExpr,
+  CallbackFunctionExpr,
   TernaryExpr,
   BinaryExpr,
   UnaryExpr,
@@ -430,6 +431,37 @@ public:
 
   std::string toString() const override {
     return "CompoundAssignmentExpr: " + assignee->toString() + " " + operator_.value + " " + value->toString();
+  }
+};
+
+class CallbackFunctionExpr : public Expr {
+public:
+  std::vector<Token> parameters;
+  std::vector<std::unique_ptr<Stmt>> body;
+
+  CallbackFunctionExpr(std::vector<Token> parameters, std::vector<std::unique_ptr<Stmt>> body)
+      : Expr(NodeType::CallbackFunctionExpr), parameters(std::move(parameters)), body(std::move(body)) {}
+
+  CallbackFunctionExpr(const CallbackFunctionExpr&) = delete;
+  CallbackFunctionExpr& operator=(const CallbackFunctionExpr&) = delete;
+  CallbackFunctionExpr(CallbackFunctionExpr&&) noexcept = default;
+  CallbackFunctionExpr& operator=(CallbackFunctionExpr&&) noexcept = default;
+
+  std::string toString() const override {
+    std::ostringstream oss;
+    oss << "CallbackFunctionExpr: (";
+    for (size_t i = 0; i < parameters.size(); ++i) {
+      oss << parameters[i].value;
+      if (i < parameters.size() - 1) {
+        oss << ", ";
+      }
+    }
+    oss << ") {\n";
+    for (const auto& stmt : body) {
+      oss << "  " << stmt->toString() << "\n";
+    }
+    oss << "}";
+    return oss.str();
   }
 };
 
