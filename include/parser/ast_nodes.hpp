@@ -371,10 +371,10 @@ public:
 class LogStmt : public Stmt {
 public:
   Token logType;
-  std::unique_ptr<Expr> message;
+  std::vector<std::unique_ptr<Expr>> message;
   std::unique_ptr<Expr> color;
 
-  LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
+  LogStmt(const Token& logType, std::vector<std::unique_ptr<Expr>> message, std::unique_ptr<Expr> color = nullptr)
       : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
 
   LogStmt(const LogStmt&) = delete;
@@ -383,13 +383,19 @@ public:
   LogStmt& operator=(LogStmt&&) noexcept = default;
 
   virtual std::string toString() const override {
-    std::stringstream ss;
-    ss << logType.plainText << "(" << message->toString();
-    if (color) {
-      ss << ", " << color->toString();
+    std::string result = "LogStmt: ";
+    result += logType.value + "(";
+    for (size_t i = 0; i < message.size(); ++i) {
+      result += message[i]->toString();
+      if (i < message.size() - 1) {
+        result += ", ";
+      }
     }
-    ss << ")";
-    return ss.str();
+    result += ")";
+    if (color) {
+      result += " in " + color->toString();
+    }
+    return result;
   }
 };
 

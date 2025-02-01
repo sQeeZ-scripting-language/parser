@@ -231,18 +231,24 @@ std::unique_ptr<Stmt> Parser::parseForStatement() {
 std::unique_ptr<Stmt> Parser::parseLogStatement() {
   Token logType = advance();  // log | logc | warn | error
   assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after log function call.");
-
-  auto messageExpr = parseExpression();
-
+  std::vector<std::unique_ptr<Expr>> message = {};
+  do {
+    if (message.size() > 0) {
+      assertToken("SyntaxToken::COMMA", "Expected ',' between message expressions in log function call.");
+    }
+    message.push_back(parseExpression());
+  } while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
   std::unique_ptr<Expr> colorExpr = nullptr;
   if (logType.tag == Token::TypeTag::LOG && logType.type.logToken == LogToken::COLORED) {
-    assertToken("SyntaxToken::COMMA", "Expected ',' between message and color in logc.");
-    colorExpr = parseExpression();
+    colorExpr = std::move(message.back());
+    message.pop_back();
+    if (colorExpr->kind != NodeType::HexCodeLiteral) {
+      throw std::invalid_argument("Expected hex code literal as last argument for a colored log.");
+    }
   }
-
   assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after log function call.");
   skipSemicolon();
-  return std::make_unique<LogStmt>(logType, std::move(messageExpr), std::move(colorExpr));
+  return std::make_unique<LogStmt>(logType, std::move(message), std::move(colorExpr));
 }
 
 std::unique_ptr<Expr> Parser::parseExpression() { return parseAssignmentExpr(); }
