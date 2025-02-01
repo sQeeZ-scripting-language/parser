@@ -37,7 +37,6 @@ private:
   std::unique_ptr<Expr> parseLogicalExpr();
   std::unique_ptr<Expr> parseEqualityExpr();
   std::unique_ptr<Expr> parseRelationalExpr();
-  std::unique_ptr<Expr> parsePipeExpr();
   std::unique_ptr<Expr> parseObjectExpr();
   std::unique_ptr<Expr> parseArrayExpr();
   std::unique_ptr<Expr> parseCallbackFunctionExpr();
@@ -47,11 +46,11 @@ private:
   std::unique_ptr<Expr> parsePowerExpr();
   std::unique_ptr<Expr> parseCallMemberExpr();
   std::unique_ptr<Expr> parseCallExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method);
+  std::unique_ptr<Expr> parseShortExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method);
   std::vector<std::unique_ptr<Expr>> parseArgs();
   std::vector<std::unique_ptr<Expr>> parseArgumentsList();
   std::unique_ptr<Expr> parseMemberExpr();
   std::unique_ptr<Expr> parsePrimaryExpr();
-  std::unique_ptr<Expr> parseShortExpr();
 
   // Utility functions
   bool isEOF();
@@ -62,6 +61,58 @@ private:
   void log(const std::unique_ptr<Program>& program, bool devMode);
   void skipSemicolon();
   void skipComment();
+  inline static const std::unordered_map<ShortNotationToken, std::string> shortEnumToString = {
+      {ShortNotationToken::LENGTH, "length"},
+      {ShortNotationToken::CONCAT, "concat"},
+      {ShortNotationToken::INCLUDES, "includes"},
+      {ShortNotationToken::INDEX_OF, "indexOf"},
+      {ShortNotationToken::LAST_INDEX_OF, "lastIndexOf"},
+      {ShortNotationToken::SLICE, "slice"},
+      {ShortNotationToken::PUSH, "push"},
+      {ShortNotationToken::POP, "pop"},
+      {ShortNotationToken::SHIFT, "shift"},
+      {ShortNotationToken::UNSHIFT, "unshift"},
+      {ShortNotationToken::SPLICE, "splice"},
+      {ShortNotationToken::REVERSE, "reverse"},
+      {ShortNotationToken::SORT, "sort"},
+      {ShortNotationToken::FILL, "fill"},
+      {ShortNotationToken::JOIN, "join"},
+      {ShortNotationToken::COUNT, "count"},
+      {ShortNotationToken::EVERY, "every"},
+      {ShortNotationToken::SOME, "some"},
+      {ShortNotationToken::FIND, "find"},
+      {ShortNotationToken::FIND_INDEX, "findIndex"},
+      {ShortNotationToken::FIND_LAST, "findLast"},
+      {ShortNotationToken::FIND_LAST_INDEX, "findLastIndex"},
+      {ShortNotationToken::FILTER, "filter"},
+      {ShortNotationToken::MAP, "map"},
+      {ShortNotationToken::REDUCE, "reduce"},
+      {ShortNotationToken::FLAT, "flat"},
+      {ShortNotationToken::FLAT_MAP, "flatMap"},
+      {ShortNotationToken::FOR_EACH, "forEach"},
+      {ShortNotationToken::HAS_KEY, "hasKey"},
+      {ShortNotationToken::KEYS, "keys"},
+      {ShortNotationToken::VALUES, "values"},
+      {ShortNotationToken::ENTRIES, "entries"},
+      {ShortNotationToken::GET, "get"},
+      {ShortNotationToken::CHAR_AT, "charAt"},
+      {ShortNotationToken::CHAR_CODE_AT, "charCodeAt"},
+      {ShortNotationToken::MATCH, "match"},
+      {ShortNotationToken::MATCH_ALL, "matchAll"},
+      {ShortNotationToken::PAD_END, "padEnd"},
+      {ShortNotationToken::PAD_START, "padStart"},
+      {ShortNotationToken::REPEAT, "repeat"},
+      {ShortNotationToken::REPLACE, "replace"},
+      {ShortNotationToken::REPLACE_ALL, "replaceAll"},
+      {ShortNotationToken::SPLIT, "split"},
+      {ShortNotationToken::STARTS_WITH, "startsWith"},
+      {ShortNotationToken::ENDS_WITH, "endsWith"},
+      {ShortNotationToken::SUBSTRING, "substring"},
+      {ShortNotationToken::LOWERCASE, "lowercase"},
+      {ShortNotationToken::UPPERCASE, "uppercase"},
+      {ShortNotationToken::TRIM, "trim"},
+      {ShortNotationToken::TRIM_END, "trimEnd"},
+      {ShortNotationToken::TRIM_START, "trimStart"}};
 };
 
 #endif  // PARSER_HPP
