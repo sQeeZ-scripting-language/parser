@@ -241,7 +241,7 @@ std::unique_ptr<Stmt> Parser::parseLogStatement() {
   }
 
   assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after log function call.");
-  assertToken("SyntaxToken::SEMICOLON", "Expected ';' after log function call.");
+  skipSemicolon();
   return std::make_unique<LogStmt>(logType, std::move(messageExpr), std::move(colorExpr));
 }
 
@@ -259,7 +259,7 @@ std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
         assertToken("OperatorToken::ASSIGN", "Expected '=' after assignment expression.");
         value = parseAssignmentExpr();
         expression = std::make_unique<AssignmentExpr>(std::move(left), std::move(value));
-        assertToken("SyntaxToken::SEMICOLON", "Expected ';' after assignment expression.");
+        skipSemicolon();
         return expression;
       case OperatorToken::ADDITION_ASSIGNMENT:
       case OperatorToken::SUBTRACTION_ASSIGNMENT:
@@ -269,7 +269,7 @@ std::unique_ptr<Expr> Parser::parseAssignmentExpr() {
         operator_ = advance();  // + | - | * | / | %
         value = parseAssignmentExpr();
         expression = std::make_unique<CompoundAssignmentExpr>(std::move(left), std::move(value), operator_);
-        assertToken("SyntaxToken::SEMICOLON", "Expected ';' after assignment expression.");
+        skipSemicolon();
         return expression;
       default:
         break;
