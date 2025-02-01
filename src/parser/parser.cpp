@@ -430,32 +430,29 @@ std::unique_ptr<Expr> Parser::parseCallbackFunctionExpr() {
 std::unique_ptr<Expr> Parser::parseShortData() {
   assertToken("SyntaxToken::AT", "Expected '@' to start short data notation.");
   // Short Notation -> Object @ key:value, key:value
-  if (peek(2).tag == Token::TypeTag::SYNTAX && peek(2).type.syntaxToken == SyntaxToken::COLON) {
+  if (lookAhead(2).tag == Token::TypeTag::SYNTAX && lookAhead(2).type.syntaxToken == SyntaxToken::COLON) {
     std::vector<std::unique_ptr<Property>> properties;
-    while (true) {
+    do {
+      if (properties.size() > 0) {
+        assertToken("SyntaxToken::COMMA", "Expected comma between properties in short data notation.");
+      }
       Token key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.");
       assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
-      auto value = parseExpression();
-      properties.push_back(std::make_unique<Property>(Property{key, std::move(value)}));
-      if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
-        assertToken("SyntaxToken::COMMA", "Expected comma after property chain in short data notation.");
-      } else {
-        break;
-      }
-    }
+      properties.push_back(std::make_unique<Property>(Property{key, std::move(parseExpression())}));
+    } while(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
+    assertToken("SyntaxToken::SEMICOLON", "Expected semicolon after short data notation.");
     return std::make_unique<ObjectLiteral>(std::move(properties));
   }
   // Short Notation -> Array @ value, value, value
   else {
     std::vector<std::unique_ptr<Expr>> elements;
-    while (true) {
-      elements.push_back(parseExpression());
-      if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA) {
-        assertToken("SyntaxToken::COMMA", "Expected comma after element chain in short data notation.");
-      } else {
-        break;
+    do {
+      if (elements.size() > 0) {
+        assertToken("SyntaxToken::COMMA", "Expected comma between elements in short data notation.");
       }
-    }
+      elements.push_back(parseExpression());
+    } while(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
+    assertToken("SyntaxToken::SEMICOLON", "Expected semicolon after short data notation.");
     return std::make_unique<ArrayLiteral>(std::move(elements));
   }
 }
@@ -656,6 +653,8 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         value = assertToken("DataToken::CHAR_LITERAL", "Expected character literal").value;
         assertToken("SyntaxToken::SINGLE_QUOTE", "Expected closing single quote");
         return std::make_unique<CharLiteral>(CharLiteral{value[0]});
+      case SyntaxToken::AT:
+        return parseShortData();
       case SyntaxToken::HASHTAG:
         assertToken("SyntaxToken::HASHTAG", "Expected hashtag to start hex code literal");
         value = assertToken("DataToken::HEX_CODE_LITERAL", "Expected hex code literal").value;
@@ -739,10 +738,8 @@ std::unique_ptr<Expr> Parser::parseShortExpr() {
       expression = std::make_unique<ShortOperationLiteral>(shortKey, operation_, std::move(value));
       break;
     case ShortNotationToken::CONCAT:
-    case ShortNotationToken::ZIP:
     case ShortNotationToken::JOIN:
     case ShortNotationToken::FIND:
-    case ShortNotationToken::COUNT:
       value = parseExpression();
       assertToken("SyntaxToken::COMMA", "Expected ',' between values in short expression.");
       value2 = parseExpression();
