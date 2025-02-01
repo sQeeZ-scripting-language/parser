@@ -325,26 +325,14 @@ std::unique_ptr<Expr> Parser::parseEqualityExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseRelationalExpr() {
-  auto left = parsePipeExpr();
+  auto left = parseAdditiveExpr();
 
   while (peek().tag == Token::TypeTag::LOGICAL &&
          (peek().type.logicalToken == LogicalToken::LESS || peek().type.logicalToken == LogicalToken::GREATER ||
           peek().type.logicalToken == LogicalToken::LESS_EQUAL ||
           peek().type.logicalToken == LogicalToken::GREATER_EQUAL)) {
     Token operator_ = advance();  // < | > | <= | >=
-    auto right = parsePipeExpr();
-    left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
-  }
-
-  return left;
-}
-
-std::unique_ptr<Expr> Parser::parsePipeExpr() {
-  auto left = parseObjectExpr();
-
-  while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
-    Token operator_ = assertToken("SyntaxToken::PIPE_OPERATOR", "Expected pipe operator");
-    auto right = parseObjectExpr();
+    auto right = parseAdditiveExpr();
     left = std::make_unique<BinaryExpr>(std::move(left), std::move(right), operator_);
   }
 
@@ -352,14 +340,6 @@ std::unique_ptr<Expr> Parser::parsePipeExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseObjectExpr() {
-  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::AT) {
-    return parseShortData();
-  }
-
-  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACE)) {
-    return parseArrayExpr();
-  }
-
   assertToken("SyntaxToken::OPEN_BRACE", "Expected opening brace for object");
   std::vector<std::unique_ptr<Property>> properties;
 
@@ -393,10 +373,6 @@ std::unique_ptr<Expr> Parser::parseObjectExpr() {
 }
 
 std::unique_ptr<Expr> Parser::parseArrayExpr() {
-  if (!(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
-    return parseAdditiveExpr();
-  }
-
   assertToken("SyntaxToken::OPEN_BRACKET", "Expected opening bracket for array");
   std::vector<std::unique_ptr<Expr>> elements;
 
@@ -445,7 +421,7 @@ std::unique_ptr<Expr> Parser::parseShortData() {
       Token key = assertToken("DataToken::IDENTIFIER", "Expected identifier key in short data notation.");
       assertToken("SyntaxToken::COLON", "Expected colon after key in short data notation.");
       properties.push_back(std::make_unique<Property>(Property{key, std::move(parseExpression())}));
-    } while(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
+    } while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
     assertToken("SyntaxToken::SEMICOLON", "Expected semicolon after short data notation.");
     return std::make_unique<ObjectLiteral>(std::move(properties));
   }
@@ -457,7 +433,7 @@ std::unique_ptr<Expr> Parser::parseShortData() {
         assertToken("SyntaxToken::COMMA", "Expected comma between elements in short data notation.");
       }
       elements.push_back(parseExpression());
-    } while(peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
+    } while (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::COMMA);
     assertToken("SyntaxToken::SEMICOLON", "Expected semicolon after short data notation.");
     return std::make_unique<ArrayLiteral>(std::move(elements));
   }
@@ -525,10 +501,36 @@ std::unique_ptr<Expr> Parser::parseCallExpr(std::unique_ptr<Expr> caller, std::u
   callExpr->args = parseArgs();
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) {
-    assertToken("SyntaxToken::DOT", "Expected dot operator for method chaining");
+    assertToken("SyntaxToken::DOT", "Expected dot operator following method call");
     auto followingMethod = parsePrimaryExpr();
     callExpr = std::unique_ptr<CallExpr>(
         static_cast<CallExpr*>(parseCallExpr(std::move(callExpr), std::move(followingMethod)).release()));
+  } else if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
+    assertToken("SyntaxToken::PIPE_OPERATOR", "Expected pipe operator following method call");
+    auto followingMethod = parsePrimaryExpr();
+    callExpr = std::unique_ptr<CallExpr>(
+        static_cast<CallExpr*>(parseShortExpr(std::move(callExpr), std::move(followingMethod)).release()));
+  }
+
+  return callExpr;
+}
+
+std::unique_ptr<Expr> Parser::parseShortExpr(std::unique_ptr<Expr> caller, std::unique_ptr<Expr> method) {
+  auto callExpr = std::make_unique<CallExpr>();
+  callExpr->caller = std::move(caller);
+  callExpr->method = std::move(method);
+  callExpr->args = parseArgs();
+
+  if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) {
+    assertToken("SyntaxToken::DOT", "Expected dot operator following method call");
+    auto followingMethod = parsePrimaryExpr();
+    callExpr = std::unique_ptr<CallExpr>(
+        static_cast<CallExpr*>(parseCallExpr(std::move(callExpr), std::move(followingMethod)).release()));
+  } else if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR) {
+    assertToken("SyntaxToken::PIPE_OPERATOR", "Expected pipe operator following method call");
+    auto followingMethod = parsePrimaryExpr();
+    callExpr = std::unique_ptr<CallExpr>(
+        static_cast<CallExpr*>(parseShortExpr(std::move(callExpr), std::move(followingMethod)).release()));
   }
 
   return callExpr;
@@ -562,14 +564,13 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
   std::unique_ptr<Expr> object = parsePrimaryExpr();
 
   while ((peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) ||
-         (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET)) {
-    Token operatorToken = advance();  // . | [
+         (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_BRACKET) ||
+         (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::PIPE_OPERATOR)) {
+    Token token = advance();  // . | [ | |>
     std::unique_ptr<Expr> property;
-    bool computed;
 
     // dot notation
-    if (operatorToken.type.syntaxToken == SyntaxToken::DOT) {
-      computed = false;
+    if (token.type.syntaxToken == SyntaxToken::DOT) {
       property = parsePrimaryExpr();
       if (property->kind != NodeType::Identifier) {
         throw std::invalid_argument("Cannot use dot operator without right-hand side being an identifier.");
@@ -578,15 +579,22 @@ std::unique_ptr<Expr> Parser::parseMemberExpr() {
       if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::OPEN_PARENTHESIS) {
         object = parseCallExpr(std::move(object), std::move(property));
       } else {
-        object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
+        object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), false});
       }
     }
     // bracket notation
-    else {
-      computed = true;
+    else if (token.type.syntaxToken == SyntaxToken::OPEN_BRACKET) {
       property = parseExpression();
       assertToken("SyntaxToken::CLOSE_BRACKET", "Missing closing bracket in computed value.");
-      object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), computed});
+      object = std::make_unique<MemberExpr>(MemberExpr{std::move(object), std::move(property), true});
+    }
+    // pipe operator
+    else {
+      if (peek().tag != Token::TypeTag::SHORT_NOTATION) {
+        throw std::invalid_argument("Expected Short Notation following pipe operator.");
+      }
+      property = parsePrimaryExpr();
+      object = parseShortExpr(std::move(object), std::move(property));
     }
   }
 
@@ -625,6 +633,12 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
     std::string value;
     int i, scope = 0;
     switch (token.type.syntaxToken) {
+      case SyntaxToken::OPEN_BRACKET:
+        return parseArrayExpr();
+      case SyntaxToken::OPEN_BRACE:
+        return parseObjectExpr();
+      case SyntaxToken::AT:
+        return parseShortData();
       case SyntaxToken::OPEN_PARENTHESIS:
         assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' to start parenthesised expression.");
         while (true) {
@@ -659,8 +673,6 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         value = assertToken("DataToken::CHAR_LITERAL", "Expected character literal").value;
         assertToken("SyntaxToken::SINGLE_QUOTE", "Expected closing single quote");
         return std::make_unique<CharLiteral>(CharLiteral{value[0]});
-      case SyntaxToken::AT:
-        return parseShortData();
       case SyntaxToken::HASHTAG:
         assertToken("SyntaxToken::HASHTAG", "Expected hashtag to start hex code literal");
         value = assertToken("DataToken::HEX_CODE_LITERAL", "Expected hex code literal").value;
@@ -700,68 +712,10 @@ std::unique_ptr<Expr> Parser::parsePrimaryExpr() {
         break;
     }
   } else if (token.tag == Token::TypeTag::SHORT_NOTATION) {
-    return parseShortExpr();
+    token.value = shortEnumToString.at(advance().type.shortNotationToken);
+    return std::make_unique<Identifier>(Identifier{token});
   }
   throw std::logic_error("Unexpected token \"" + token.plainText + "\" found in primary expression.");
-}
-
-std::unique_ptr<Expr> Parser::parseShortExpr() {
-  Token shortKey = advance();  // MAP | REDUCE | FILTER | CONCAT | ZIP | JOIN | FIND | COUNT | SORT | REVERSE
-  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected '(' after short expression type.");
-  Token operation_ = peek();
-  std::unique_ptr<Expr> value;
-  std::unique_ptr<Expr> value2;
-  std::unique_ptr<Expr> expression;
-  switch (shortKey.type.shortNotationToken) {
-    case ShortNotationToken::MAP:
-    case ShortNotationToken::REDUCE:
-      operation_ = advance();  // + | - | * | / | %
-      if (!(operation_.tag == Token::TypeTag::OPERATOR &&
-            (operation_.type.operatorToken == OperatorToken::ADDITION ||
-             operation_.type.operatorToken == OperatorToken::SUBTRACTION ||
-             operation_.type.operatorToken == OperatorToken::MULTIPLICATION ||
-             operation_.type.operatorToken == OperatorToken::DIVISION ||
-             operation_.type.operatorToken == OperatorToken::MODULUS))) {
-        throw std::invalid_argument("Unexpected operation found in short expression " + shortKey.plainText + ": " +
-                                    operation_.plainText);
-      }
-      value = parseExpression();
-      expression = std::make_unique<ShortOperationLiteral>(shortKey, operation_, std::move(value));
-      break;
-    case ShortNotationToken::FILTER:
-      operation_ = advance();  // == | != | < | > | <= | >=
-      if (!(operation_.tag == Token::TypeTag::LOGICAL) &&
-          (operation_.type.logicalToken == LogicalToken::EQUAL ||
-           operation_.type.logicalToken == LogicalToken::NOT_EQUAL ||
-           operation_.type.logicalToken == LogicalToken::LESS ||
-           operation_.type.logicalToken == LogicalToken::GREATER ||
-           operation_.type.logicalToken == LogicalToken::LESS_EQUAL ||
-           operation_.type.logicalToken == LogicalToken::GREATER_EQUAL)) {
-        throw std::invalid_argument("Unexpected operation found in short expression " + shortKey.plainText + ": " +
-                                    operation_.plainText);
-      }
-      value = parseExpression();
-      expression = std::make_unique<ShortOperationLiteral>(shortKey, operation_, std::move(value));
-      break;
-    case ShortNotationToken::CONCAT:
-    case ShortNotationToken::JOIN:
-    case ShortNotationToken::FIND:
-      value = parseExpression();
-      assertToken("SyntaxToken::COMMA", "Expected ',' between values in short expression.");
-      value2 = parseExpression();
-      expression = std::make_unique<ShortDoubleExpressionLiteral>(shortKey, std::move(value), std::move(value2));
-      break;
-    case ShortNotationToken::SORT:
-    case ShortNotationToken::REVERSE:
-      value = parseExpression();
-      expression = std::make_unique<ShortSingleExpressionLiteral>(shortKey, std::move(value));
-      break;
-    default:
-      throw std::invalid_argument("Unexpected short expression type: " + shortKey.plainText);
-      break;
-  }
-  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Expected ')' after short expression content.");
-  return expression;
 }
 
 // Utility functions
