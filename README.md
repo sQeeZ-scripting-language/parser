@@ -13,6 +13,8 @@ The sQeeZ Parser is responsible for analyzing the sequence of tokens generated b
   - [Expressions](#expressions)
   - [Overview of the Node Types](#overview-of-the-node-types)
 - [Order of Precedence](#order-of-precedence)
+  - [Operator Precedence Levels](#operator-precedence-levels)
+  - [Parsing Functions Overview](#parsing-functions-overview)
 
 # How to Use
 > **Note:**
@@ -184,16 +186,17 @@ enum class NodeType {
   FunctionDeclaration,
   ReturnStmt,
   VarDeclaration,
-  ConditionalStatement,
-  WhileStatement,
-  DoWhileStatement,
-  ForStatement,
-  ForInStatement,
-  ForOfStatement,
+  ConditionalStmt,
+  WhileStmt,
+  DoWhileStmt,
+  ForStmt,
+  ForInStmt,
+  ForOfStmt,
   LogStmt,
   // EXPRESSIONS
   AssignmentExpr,
   CompoundAssignmentExpr,
+  CallbackFunctionExpr,
   TernaryExpr,
   BinaryExpr,
   UnaryExpr,
@@ -212,42 +215,93 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   // Short Notation
-  ShortOperationLiteral,
-  ShortSingleExpressionLiteral,
-  ShortDoubleExpressionLiteral
+  ShortOperationLiteral
 };
 ```
 
 # Order of Precedence
 The order of precedence dictates how operators are parsed and evaluated in expressions, which is vital for constructing accurate Abstract Syntax Trees (AST). The parser employs recursive descent parsing, where each level of the tree represents different precedence levels. This recursive nature allows for a clear and structured representation of nested expressions, ensuring that operations are performed in the correct order according to their precedence.
 
-1. **Primary Expressions**
-  - Literals, Identifiers, parenthesized expressions.
-2. **Short Notation (Data)**
-  - `@` (short notation for objects and arrays)
-2. **Short Notation (Functions)**
-  - `MAP`, `FILTER`, `REDUCE`, etc.
-3. **Member Access**
-  - `.` (dot notation) and `[]` (bracket notation)
-4. **Function Calls**
-  - `()` (function call)
-5. **Unary Operators**
-  - `++`, `--` (pre-increment and pre-decrement)
-6. **Exponentiation**
-  - `**` (power operator)
-7. **Multiplicative Operators**
-  - `*`, `/`, `%` (multiplication, division, modulus)
-8. **Additive Operators**
-  - `+`, `-` (addition and subtraction)
-9. **Relational Operators**
-  - `<`, `<=`, `>`, `>=` (comparison)
-10. **Equality Operators**
-  - `==`, `!=` (equality checks)
-11. **Logical Operators**
-  - `&&`, `||` (logical AND and OR)
-12. **Conditional Operator**
-  - `? :` (ternary operator)
-13. **Assignment Operators**
-  - `=`, `+=`, `-=`, `*=`, `/=`, `%=`, etc. (assignment)
+## Operator Precedence Levels
+
+1. **Primary Expressions**  
+   - Literals, Identifiers, Parenthesized expressions (`parsePrimaryExpr`)
+
+2. **Short Notation (Data)**  
+   - `@` (short notation for objects and arrays) (`parseShortData`)
+
+3. **Short Notation (Functions)**  
+   - `MAP`, `FILTER`, `REDUCE`, etc. (`parseCallbackFunctionExpr`)
+
+4. **Member Access**  
+   - `.` (dot notation), `[]` (bracket notation), `|>` (pipe notation) (`parseMemberExpr`)
+
+5. **Function Calls**  
+   - `()` (function call) (`parseCallExpr`, `parseCallMemberExpr`)
+
+6. **Unary Operators**  
+   - `++`, `--` (pre-increment and pre-decrement)
+
+7. **Exponentiation**  
+   - `**` (power operator) (`parsePowerExpr`)
+
+8. **Multiplicative Operators**  
+   - `*`, `/`, `%` (multiplication, division, modulus) (`parseMultiplicativeExpr`)
+
+9. **Additive Operators**  
+   - `+`, `-` (addition and subtraction) (`parseAdditiveExpr`)
+
+10. **Relational Operators**  
+    - `<`, `<=`, `>`, `>=` (comparison) (`parseRelationalExpr`)
+
+11. **Equality Operators**  
+    - `==`, `!=` (equality checks) (`parseEqualityExpr`)
+
+12. **Logical Operators**  
+    - `&&`, `||` (logical AND and OR) (`parseLogicalExpr`)
+
+13. **Conditional Operator**  
+    - `? :` (ternary operator) (`parseTernaryExpr`)
+
+14. **Assignment Operators**  
+    - `=`, `+=`, `-=`, `*=`, `/=`, `%=`, etc. (`parseAssignmentExpr`)
+
+## Parsing Functions Overview
+
+### Statements
+- `parseStatement()`
+- `parseStatementBlock()`
+- `parseFunctionDeclaration()`
+- `parseReturnStatement()`
+- `parseVarDeclaration()`
+- `parseConditionalStatement()`
+- `parseWhileStatement()`
+- `parseDoWhileStatement()`
+- `parseForStatement()`
+- `parseLogStatement()`
+
+### Expressions
+- `parseExpression()`
+- `parseAssignmentExpr()`
+- `parseTernaryExpr()`
+- `parseLogicalExpr()`
+- `parseEqualityExpr()`
+- `parseRelationalExpr()`
+- `parseObjectExpr()`
+- `parseArrayExpr()`
+- `parseCallbackFunctionExpr()`
+- `parseShortData()`
+- `parseAdditiveExpr()`
+- `parseMultiplicativeExpr()`
+- `parsePowerExpr()`
+- `parseCallMemberExpr()`
+- `parseCallExpr(caller, method)`
+- `parseShortExpr(caller, method)`
+- `parseArgs()`
+- `parseShortArgs()`
+- `parseArgumentsList()`
+- `parseMemberExpr()`
+- `parsePrimaryExpr()`
+
 
 [Back to Top](#sqeez-parser)
