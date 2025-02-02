@@ -556,13 +556,15 @@ std::vector<std::unique_ptr<Expr>> Parser::parseShortArgs() {
     if (args.size() > 0) {
       assertToken("SyntaxToken::COMMA", "Expected comma between arguments");
     }
-    if ((peek().tag == Token::TypeTag::LOGICAL && !(peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) || 
-        (peek().tag == Token::TypeTag::OPERATOR && !(peek().type.operatorToken == OperatorToken::ADDITION_ASSIGNMENT ||
-              peek().type.operatorToken == OperatorToken::SUBTRACTION_ASSIGNMENT ||
-              peek().type.operatorToken == OperatorToken::MULTIPLICATION_ASSIGNMENT ||
-              peek().type.operatorToken == OperatorToken::DIVISION_ASSIGNMENT ||
-              peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT || 
-              peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
+    if ((peek().tag == Token::TypeTag::LOGICAL &&
+         !(peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) ||
+        (peek().tag == Token::TypeTag::OPERATOR &&
+         !(peek().type.operatorToken == OperatorToken::ADDITION_ASSIGNMENT ||
+           peek().type.operatorToken == OperatorToken::SUBTRACTION_ASSIGNMENT ||
+           peek().type.operatorToken == OperatorToken::MULTIPLICATION_ASSIGNMENT ||
+           peek().type.operatorToken == OperatorToken::DIVISION_ASSIGNMENT ||
+           peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT ||
+           peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
       args.push_back(std::make_unique<ShortOperationLiteral>(ShortOperationLiteral{advance(), parseExpression()}));
     } else if (peek().tag == Token::TypeTag::LOG) {
       args.push_back(std::unique_ptr<Expr>(static_cast<Expr*>(parseLogStatement().release())));

@@ -44,9 +44,7 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   // Short Notation
-  ShortOperationLiteral,
-  ShortSingleExpressionLiteral,
-  ShortDoubleExpressionLiteral
+  ShortOperationLiteral
 };
 
 // Base class for all AST nodes
