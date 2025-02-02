@@ -44,9 +44,7 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   // Short Notation
-  ShortOperationLiteral,
-  ShortSingleExpressionLiteral,
-  ShortDoubleExpressionLiteral
+  ShortOperationLiteral
 };
 
 // Base class for all AST nodes
@@ -371,10 +369,10 @@ public:
 class LogStmt : public Stmt {
 public:
   Token logType;
-  std::unique_ptr<Expr> message;
+  std::vector<std::unique_ptr<Expr>> message;
   std::unique_ptr<Expr> color;
 
-  LogStmt(const Token& logType, std::unique_ptr<Expr> message, std::unique_ptr<Expr> color = nullptr)
+  LogStmt(const Token& logType, std::vector<std::unique_ptr<Expr>> message, std::unique_ptr<Expr> color = nullptr)
       : Stmt(NodeType::LogStmt), logType(logType), message(std::move(message)), color(std::move(color)) {}
 
   LogStmt(const LogStmt&) = delete;
@@ -383,13 +381,19 @@ public:
   LogStmt& operator=(LogStmt&&) noexcept = default;
 
   virtual std::string toString() const override {
-    std::stringstream ss;
-    ss << logType.plainText << "(" << message->toString();
-    if (color) {
-      ss << ", " << color->toString();
+    std::string result = "LogStmt: ";
+    result += logType.value + "(";
+    for (size_t i = 0; i < message.size(); ++i) {
+      result += message[i]->toString();
+      if (i < message.size() - 1) {
+        result += ", ";
+      }
     }
-    ss << ")";
-    return ss.str();
+    result += ")";
+    if (color) {
+      result += " in " + color->toString();
+    }
+    return result;
   }
 };
 
@@ -768,65 +772,20 @@ public:
   std::string toString() const override { return "HexCodeLiteral: " + value; }
 };
 
-// Short Notation
 class ShortOperationLiteral : public Expr {
 public:
-  Token type;
-  Token operation_;
-  std::unique_ptr<Expr> value;
+  Token operation;
+  std::unique_ptr<Expr> operand;
 
-  ShortOperationLiteral(const Token& type, const Token& operation_, std::unique_ptr<Expr> value)
-      : Expr(NodeType::ShortOperationLiteral), type(type), operation_(operation_), value(std::move(value)) {}
+  ShortOperationLiteral(const Token& operation, std::unique_ptr<Expr> operand)
+      : Expr(NodeType::ShortOperationLiteral), operation(operation), operand(std::move(operand)) {}
 
   ShortOperationLiteral(const ShortOperationLiteral&) = delete;
   ShortOperationLiteral& operator=(const ShortOperationLiteral&) = delete;
   ShortOperationLiteral(ShortOperationLiteral&&) noexcept = default;
-  ShortOperationLiteral& operator=(ShortOperationLiteral&&) = default;
+  ShortOperationLiteral& operator=(ShortOperationLiteral&&) noexcept = default;
 
-  std::string toString() const override {
-    return "ShortOperationLiteral: " + type.plainText + "(" + operation_.value + value->toString() + ")";
-  }
-};
-
-class ShortSingleExpressionLiteral : public Expr {
-public:
-  Token type;
-  std::unique_ptr<Expr> value;
-
-  ShortSingleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value)
-      : Expr(NodeType::ShortSingleExpressionLiteral), type(type), value(std::move(value)) {}
-
-  ShortSingleExpressionLiteral(const ShortSingleExpressionLiteral&) = delete;
-  ShortSingleExpressionLiteral& operator=(const ShortSingleExpressionLiteral&) = delete;
-  ShortSingleExpressionLiteral(ShortSingleExpressionLiteral&&) noexcept = default;
-  ShortSingleExpressionLiteral& operator=(ShortSingleExpressionLiteral&&) = default;
-
-  std::string toString() const override {
-    return "ShortSingleExpressionLiteral: " + type.plainText + "(" + value->toString() + ")";
-  }
-};
-
-class ShortDoubleExpressionLiteral : public Expr {
-public:
-  Token type;
-  std::unique_ptr<Expr> value1;
-  std::unique_ptr<Expr> value2;
-
-  ShortDoubleExpressionLiteral(const Token& type, std::unique_ptr<Expr> value1, std::unique_ptr<Expr> value2)
-      : Expr(NodeType::ShortDoubleExpressionLiteral),
-        type(type),
-        value1(std::move(value1)),
-        value2(std::move(value2)) {}
-
-  ShortDoubleExpressionLiteral(const ShortDoubleExpressionLiteral&) = delete;
-  ShortDoubleExpressionLiteral& operator=(const ShortDoubleExpressionLiteral&) = delete;
-  ShortDoubleExpressionLiteral(ShortDoubleExpressionLiteral&&) noexcept = default;
-  ShortDoubleExpressionLiteral& operator=(ShortDoubleExpressionLiteral&&) = default;
-
-  std::string toString() const override {
-    return "ShortDoubleExpressionLiteral: " + type.plainText + "(" + value1->toString() + ", " + value2->toString() +
-           ")";
-  }
+  std::string toString() const override { return "ShortOperationLiteral: " + operation.value + operand->toString(); }
 };
 
 #endif  // AST_NODES_HPP
