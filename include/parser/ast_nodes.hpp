@@ -774,4 +774,20 @@ public:
   std::string toString() const override { return "HexCodeLiteral: " + value; }
 };
 
+class ShortOperationLiteral : public Expr {
+public:
+  Token operation;
+  std::unique_ptr<Expr> operand;
+
+  ShortOperationLiteral(const Token& operation, std::unique_ptr<Expr> operand)
+      : Expr(NodeType::ShortOperationLiteral), operation(operation), operand(std::move(operand)) {}
+
+  ShortOperationLiteral(const ShortOperationLiteral&) = delete;
+  ShortOperationLiteral& operator=(const ShortOperationLiteral&) = delete;
+  ShortOperationLiteral(ShortOperationLiteral&&) noexcept = default;
+  ShortOperationLiteral& operator=(ShortOperationLiteral&&) noexcept = default;
+
+  std::string toString() const override { return "ShortOperationLiteral: " + operation.value + operand->toString(); }
+};
+
 #endif  // AST_NODES_HPP

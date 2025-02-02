@@ -519,7 +519,7 @@ std::unique_ptr<Expr> Parser::parseShortExpr(std::unique_ptr<Expr> caller, std::
   auto callExpr = std::make_unique<CallExpr>();
   callExpr->caller = std::move(caller);
   callExpr->method = std::move(method);
-  callExpr->args = parseArgs();
+  callExpr->args = parseShortArgs();
 
   if (peek().tag == Token::TypeTag::SYNTAX && peek().type.syntaxToken == SyntaxToken::DOT) {
     assertToken("SyntaxToken::DOT", "Expected dot operator following method call");
@@ -544,6 +544,32 @@ std::vector<std::unique_ptr<Expr>> Parser::parseArgs() {
     args = parseArgumentsList();
   }
 
+  assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Missing closing parenthesis inside arguments list");
+  return args;
+}
+
+std::vector<std::unique_ptr<Expr>> Parser::parseShortArgs() {
+  assertToken("SyntaxToken::OPEN_PARENTHESIS", "Expected open parenthesis");
+  std::vector<std::unique_ptr<Expr>> args;
+
+  while (peek().tag != Token::TypeTag::SYNTAX && peek().type.syntaxToken != SyntaxToken::CLOSE_PARENTHESIS) {
+    if (args.size() > 0) {
+      assertToken("SyntaxToken::COMMA", "Expected comma between arguments");
+    }
+    if ((peek().tag == Token::TypeTag::LOGICAL && !(peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) || 
+        (peek().tag == Token::TypeTag::OPERATOR && !(peek().type.operatorToken == OperatorToken::ADDITION_ASSIGNMENT ||
+              peek().type.operatorToken == OperatorToken::SUBTRACTION_ASSIGNMENT ||
+              peek().type.operatorToken == OperatorToken::MULTIPLICATION_ASSIGNMENT ||
+              peek().type.operatorToken == OperatorToken::DIVISION_ASSIGNMENT ||
+              peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT || 
+              peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
+      args.push_back(std::make_unique<ShortOperationLiteral>(ShortOperationLiteral{advance(), parseExpression()}));
+    } else if (peek().tag == Token::TypeTag::LOG) {
+      args.push_back(std::unique_ptr<Expr>(static_cast<Expr*>(parseLogStatement().release())));
+    } else {
+      args.push_back(parseExpression());
+    }
+  }
   assertToken("SyntaxToken::CLOSE_PARENTHESIS", "Missing closing parenthesis inside arguments list");
   return args;
 }
