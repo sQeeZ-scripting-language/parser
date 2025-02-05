@@ -559,13 +559,20 @@ std::vector<std::unique_ptr<Expr>> Parser::parseShortArgs() {
     if ((peek().tag == Token::TypeTag::LOGICAL &&
          !(peek().type.logicalToken == LogicalToken::AND || peek().type.logicalToken == LogicalToken::OR)) ||
         (peek().tag == Token::TypeTag::OPERATOR &&
-         !(peek().type.operatorToken == OperatorToken::ADDITION_ASSIGNMENT ||
+         !(peek().type.operatorToken == OperatorToken::ASSIGN ||
+           peek().type.operatorToken == OperatorToken::ADDITION_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::SUBTRACTION_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::MULTIPLICATION_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::DIVISION_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
-      args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{advance(), parseExpression()}));
+      if (peek().type.operatorToken == OperatorToken::INCREMENT) {
+        args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{Token(OperatorToken::ADDITION, 1, advance().pos, "+", "OperatorToken::ADDITION", "Parsed Increment Operator"), std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
+      } else if (peek().type.operatorToken == OperatorToken::DECREMENT) {
+        args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{Token(OperatorToken::SUBTRACTION, 1, advance().pos, "-", "OperatorToken::SUBTRACTION", "Parsed Decrement Operator"), std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
+      } else {
+        args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{advance(), parseExpression()}));
+      }
     } else {
       args.push_back(parseExpression());
     }
