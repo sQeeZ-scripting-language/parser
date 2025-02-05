@@ -567,9 +567,15 @@ std::vector<std::unique_ptr<Expr>> Parser::parseShortArgs() {
            peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
       if (peek().type.operatorToken == OperatorToken::INCREMENT) {
-        args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{Token(OperatorToken::ADDITION, 1, advance().pos, "+", "OperatorToken::ADDITION", "Parsed Increment Operator"), std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
+        args.push_back(std::make_unique<ShortOperationExpr>(
+            ShortOperationExpr{Token(OperatorToken::ADDITION, 1, advance().pos, "+", "OperatorToken::ADDITION",
+                                     "Parsed Increment Operator"),
+                               std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
       } else if (peek().type.operatorToken == OperatorToken::DECREMENT) {
-        args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{Token(OperatorToken::SUBTRACTION, 1, advance().pos, "-", "OperatorToken::SUBTRACTION", "Parsed Decrement Operator"), std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
+        args.push_back(std::make_unique<ShortOperationExpr>(
+            ShortOperationExpr{Token(OperatorToken::SUBTRACTION, 1, advance().pos, "-", "OperatorToken::SUBTRACTION",
+                                     "Parsed Decrement Operator"),
+                               std::make_unique<IntegerLiteral>(IntegerLiteral{1})}));
       } else {
         args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{advance(), parseExpression()}));
       }
