@@ -565,9 +565,7 @@ std::vector<std::unique_ptr<Expr>> Parser::parseShortArgs() {
            peek().type.operatorToken == OperatorToken::DIVISION_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::MODULUS_ASSIGNMENT ||
            peek().type.operatorToken == OperatorToken::POTENTIATION_ASSIGNMENT))) {
-      args.push_back(std::make_unique<ShortOperationLiteral>(ShortOperationLiteral{advance(), parseExpression()}));
-    } else if (peek().tag == Token::TypeTag::LOG) {
-      args.push_back(std::unique_ptr<Expr>(static_cast<Expr*>(parseLogStatement().release())));
+      args.push_back(std::make_unique<ShortOperationExpr>(ShortOperationExpr{advance(), parseExpression()}));
     } else {
       args.push_back(parseExpression());
     }

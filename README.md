@@ -215,7 +215,7 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   // Short Notation
-  ShortOperationLiteral
+  ShortOperationExpr
 };
 ```
 

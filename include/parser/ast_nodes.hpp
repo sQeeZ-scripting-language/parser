@@ -44,7 +44,7 @@ enum class NodeType {
   StringLiteral,
   HexCodeLiteral,
   // Short Notation
-  ShortOperationLiteral
+  ShortOperationExpr
 };
 
 // Base class for all AST nodes
@@ -772,20 +772,20 @@ public:
   std::string toString() const override { return "HexCodeLiteral: " + value; }
 };
 
-class ShortOperationLiteral : public Expr {
+class ShortOperationExpr : public Expr {
 public:
   Token operation;
   std::unique_ptr<Expr> operand;
 
-  ShortOperationLiteral(const Token& operation, std::unique_ptr<Expr> operand)
-      : Expr(NodeType::ShortOperationLiteral), operation(operation), operand(std::move(operand)) {}
+  ShortOperationExpr(const Token& operation, std::unique_ptr<Expr> operand)
+      : Expr(NodeType::ShortOperationExpr), operation(operation), operand(std::move(operand)) {}
 
-  ShortOperationLiteral(const ShortOperationLiteral&) = delete;
-  ShortOperationLiteral& operator=(const ShortOperationLiteral&) = delete;
-  ShortOperationLiteral(ShortOperationLiteral&&) noexcept = default;
-  ShortOperationLiteral& operator=(ShortOperationLiteral&&) noexcept = default;
+  ShortOperationExpr(const ShortOperationExpr&) = delete;
+  ShortOperationExpr& operator=(const ShortOperationExpr&) = delete;
+  ShortOperationExpr(ShortOperationExpr&&) noexcept = default;
+  ShortOperationExpr& operator=(ShortOperationExpr&&) noexcept = default;
 
-  std::string toString() const override { return "ShortOperationLiteral: " + operation.value + operand->toString(); }
+  std::string toString() const override { return "ShortOperationExpr: " + operation.value + operand->toString(); }
 };
 
 #endif  // AST_NODES_HPP
