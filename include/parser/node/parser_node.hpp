@@ -6,8 +6,8 @@
 #include <iostream>
 #include <regex>
 
-#include "parser/parser.hpp"
 #include "parser/node/node_parser.hpp"
+#include "parser/parser.hpp"
 
 Napi::String pingParser(const Napi::CallbackInfo &args);
 Napi::String info(const Napi::CallbackInfo &args);
