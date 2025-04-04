@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_compile_definitions(_GLIBCXX_USE_CXX11_ABI=1)
 
 # Set the project name
@@ -16,6 +17,7 @@ if(MSVC)
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 elseif(APPLE)
   add_definitions(-D_SQEEZ_MAC)
   set(CMAKE_OSX_ARCHITECTURES "arm64")
@@ -98,6 +100,8 @@ add_library(
   ${SOURCES} 
   ${HEADERS}
 )
+target_compile_options(sQeeZ-Parser-Lib PRIVATE -fPIC)
+set_target_properties(sQeeZ-Parser-Lib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Create the Executable
 add_executable(
