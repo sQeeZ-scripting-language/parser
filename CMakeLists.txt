@@ -36,6 +36,18 @@ message(STATUS "C++ Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
 # Include the header directory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+# Include NodeJS
+include(./node_modules/node-cmake/NodeJS.cmake)
+nodejs_init()
+
+# After init, we will have headers required at the following folder:
+# ${CMAKE_CURRENT_BINARY_DIR}/node/${NODEJS_VERSION}/include
+include_directories(
+  ${CMAKE_JS_INC} 
+  "${CMAKE_CURRENT_BINARY_DIR}/node/${NODEJS_VERSION}/include" 
+  "${CMAKE_HOME_DIRECTORY}/node_modules/node-addon-api"
+)
+
 # Include Google Test
 include(FetchContent)
 FetchContent_Declare(
@@ -53,12 +65,14 @@ include(GoogleTest)
 file(GLOB_RECURSE SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/parser/node/*.cpp
 )
 
 # Include the header files
 file(GLOB_RECURSE HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/node/*.hpp
 )
 
 # Include the Lexer
@@ -108,3 +122,23 @@ target_link_libraries(
   sQeeZ-Lexer-Lib
 )
 gtest_discover_tests(parser_test)
+
+# Create the NodeJS module
+if(${NODE})
+  add_library(
+    sQeeZ-Parser-Node 
+    SHARED 
+    ${SOURCES} 
+    ${HEADERS}
+  )
+  set_target_properties(
+    sQeeZ-Parser-Node 
+    PROPERTIES PREFIX "" SUFFIX ".node"
+  )
+  target_link_libraries(
+    sQeeZ-Parser-Node 
+    ${CMAKE_JS_LIB}
+    sQeeZ-Parser-Lib
+    sQeeZ-Lexer-Lib
+  )
+endif()
