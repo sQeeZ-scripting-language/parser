@@ -35,6 +35,10 @@ jobs:
       run: |
         choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
 
+    - name: Install Node.js dependencies
+      shell: bash
+      run: npm ci
+
     - name: Check code style
       shell: bash
       run: |
@@ -182,11 +186,15 @@ jobs:
 
         echo "Latest files have been downloaded and extracted to $REPO_DIR."
 
+    - name: Build Node
+      shell: bash
+      run: npx cmake-js compile --CDNODE=true
+
     - name: Build
       shell: bash
       run: |
-        mkdir build
-        cd build
+        mkdir build-parser
+        cd build-parser
         cmake ..
         cmake --build .
 
@@ -200,19 +208,23 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         mkdir -p temp-artifacts
-        cp build/libsQeeZ-Parser-Lib.a temp-artifacts/
-        cp build/sQeeZ-Parser-Exe temp-artifacts/
+        cp build-parser/libsQeeZ-Parser-Lib.a temp-artifacts/
+        cp build-parser/sQeeZ-Parser-Exe temp-artifacts/
+        cp build/Release/sQeeZ-Parser-Node.node temp-artifacts/
 
     - name: Move build artifacts to a temporary directory (Windows)
       if: matrix.os == 'windows-latest'
       shell: pwsh
       run: |
         New-Item -Path temp-artifacts -ItemType Directory -Force
-        if (Test-Path build/Debug/sQeeZ-Parser-Lib.lib) {
-          Copy-Item build/Debug/sQeeZ-Parser-Lib.lib -Destination temp-artifacts/
+        if (Test-Path build-parser/Debug/sQeeZ-Parser-Lib.lib) {
+          Copy-Item build-parser/Debug/sQeeZ-Parser-Lib.lib -Destination temp-artifacts/
         }
-        if (Test-Path build/Debug/sQeeZ-Parser-Exe.exe) {
-          Copy-Item build/Debug/sQeeZ-Parser-Exe.exe -Destination temp-artifacts/
+        if (Test-Path build-parser/Debug/sQeeZ-Parser-Exe.exe) {
+          Copy-Item build-parser/Debug/sQeeZ-Parser-Exe.exe -Destination temp-artifacts/
+        }
+        if (Test-Path build/Release/sQeeZ-Parser-Node.node) {
+          Copy-Item build/Release/sQeeZ-Parser-Node.node -Destination temp-artifacts/
         }
 
     - name: Upload build artifacts
