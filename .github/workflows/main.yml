@@ -187,6 +187,7 @@ jobs:
         echo "Latest files have been downloaded and extracted to $REPO_DIR."
 
     - name: Build Node
+      if: matrix.os != 'windows-latest'
       shell: bash
       run: npx cmake-js compile --CDNODE=true
 
