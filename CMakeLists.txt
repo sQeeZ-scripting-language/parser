@@ -80,47 +80,28 @@ file(GLOB_RECURSE HEADERS
 # Include the Lexer
 if(MSVC)
   set(SQEEZ_LEXER_LIB_PATH ${CMAKE_SOURCE_DIR}/lexer-lib/sQeeZ-Lexer-Lib.lib)
-  add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
-  set_target_properties(sQeeZ-Lexer-Lib PROPERTIES
-    IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH}
-    IMPORTED_IMPLIB ${SQEEZ_LEXER_LIB_PATH}
-  )
 else()
   set(SQEEZ_LEXER_LIB_PATH ${CMAKE_SOURCE_DIR}/lexer-lib/libsQeeZ-Lexer-Lib.a)
-  add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
-  set_target_properties(sQeeZ-Lexer-Lib PROPERTIES IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH})
 endif()
-set(SQEEZ_LEXER_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include/lexer)
-include_directories(${SQEEZ_LEXER_INCLUDE_DIR})
+
+add_library(sQeeZ-Lexer-Lib STATIC IMPORTED)
+set_target_properties(sQeeZ-Lexer-Lib PROPERTIES IMPORTED_LOCATION ${SQEEZ_LEXER_LIB_PATH})
 
 # Create the Library
-add_library(
-  sQeeZ-Parser-Lib 
-  STATIC 
-  ${SOURCES} 
-  ${HEADERS}
-)
+add_library(sQeeZ-Parser-Lib STATIC ${SOURCES} ${HEADERS})
 target_compile_options(sQeeZ-Parser-Lib PRIVATE -fPIC)
 set_target_properties(sQeeZ-Parser-Lib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # Create the Executable
-add_executable(
-  sQeeZ-Parser-Exe
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-)
-target_link_libraries(
-  sQeeZ-Parser-Exe 
+add_executable(sQeeZ-Parser-Exe ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+target_link_libraries(sQeeZ-Parser-Exe
   sQeeZ-Parser-Lib
   sQeeZ-Lexer-Lib
 )
 
 # Parser Test
-add_executable(
-  parser_test 
-  ${CMAKE_CURRENT_SOURCE_DIR}/test/parser_test.cc
-)
-target_link_libraries(
-  parser_test
+add_executable(parser_test ${CMAKE_CURRENT_SOURCE_DIR}/test/parser_test.cc)
+target_link_libraries(parser_test
   GTest::gtest_main
   sQeeZ-Parser-Lib
   sQeeZ-Lexer-Lib
@@ -129,20 +110,15 @@ gtest_discover_tests(parser_test)
 
 # Create the NodeJS module
 if(${NODE})
-  add_library(
-    sQeeZ-Parser-Node 
-    SHARED 
-    ${SOURCES} 
-    ${HEADERS}
-  )
-  set_target_properties(
-    sQeeZ-Parser-Node 
-    PROPERTIES PREFIX "" SUFFIX ".node"
-  )
-  target_link_libraries(
-    sQeeZ-Parser-Node 
+  add_library(sQeeZ-Parser-Node SHARED ${SOURCES} ${HEADERS})
+  set_target_properties(sQeeZ-Parser-Node PROPERTIES PREFIX "" SUFFIX ".node")
+  target_link_libraries(sQeeZ-Parser-Node
     ${CMAKE_JS_LIB}
     sQeeZ-Parser-Lib
     sQeeZ-Lexer-Lib
+  )
+  target_include_directories(sQeeZ-Parser-Node PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/include
   )
 endif()
