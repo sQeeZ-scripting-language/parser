@@ -202,7 +202,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        cd build
+        cd build-parser
         ctest
 
     - name: Move build artifacts to a temporary directory

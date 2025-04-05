@@ -117,8 +117,4 @@ if(${NODE})
     sQeeZ-Parser-Lib
     sQeeZ-Lexer-Lib
   )
-  target_include_directories(sQeeZ-Parser-Node PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/include
-  )
 endif()
